@@ -1,7 +1,7 @@
 
 
 import React, { useState, useCallback } from 'react';
-import { Member } from '../types';
+import { Member, Role } from '../types';
 import CloseIcon from './icons/CloseIcon';
 import UploadIcon from './icons/UploadIcon';
 import DownloadIcon from './icons/DownloadIcon';
@@ -9,13 +9,14 @@ import DownloadIcon from './icons/DownloadIcon';
 interface DataImportModalProps {
     onClose: () => void;
     onImport: (newMembers: Member[]) => void;
+    roles: Role[];
 }
 
 type ImportStep = 'upload' | 'preview' | 'success';
 
 const REQUIRED_HEADERS = ['name', 'email', 'phone', 'joinDate', 'birthDate', 'status', 'descendance', 'role'];
 
-const DataImportModal: React.FC<DataImportModalProps> = ({ onClose, onImport }) => {
+const DataImportModal: React.FC<DataImportModalProps> = ({ onClose, onImport, roles }) => {
     const [step, setStep] = useState<ImportStep>('upload');
     const [file, setFile] = useState<File | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -47,33 +48,43 @@ const DataImportModal: React.FC<DataImportModalProps> = ({ onClose, onImport }) 
             acc[h] = header.indexOf(h);
             return acc;
         }, {} as Record<string, number>);
+        
+        const defaultMemberRoleId = roles.find(r => r.id === 'member')?.id || roles[0]?.id || '';
 
         const validMembers = lines.slice(1).map((line, index) => {
-            const values = line.split(',');
+            const values = line.split(',').map(v => v.trim());
             if (values.length !== header.length) {
                 localErrors.push(`Ligne ${index + 2}: Nombre de colonnes incorrect.`);
                 return null;
             }
             try {
-                const status = values[headerIndexMap['status']].trim();
+                const status = values[headerIndexMap['status']];
                 if (status !== 'Actif' && status !== 'Inactif') throw new Error('Statut invalide');
+
+                const roleName = values[headerIndexMap['role']];
+                const foundRole = roles.find(r => r.name.toLowerCase() === roleName.toLowerCase());
+                if (!foundRole) {
+                    localErrors.push(`Ligne ${index + 2}: Rôle "${roleName}" non trouvé. Assignation du rôle par défaut.`);
+                }
+                const roleId = foundRole ? foundRole.id : defaultMemberRoleId;
 
                 const member: Member = {
                     id: Date.now() + index, // Temporary unique ID
-                    name: values[headerIndexMap['name']].trim(),
-                    email: values[headerIndexMap['email']].trim(),
-                    phone: values[headerIndexMap['phone']].trim(),
-                    joinDate: new Date(values[headerIndexMap['joinDate']].trim()).toISOString(),
-                    birthDate: new Date(values[headerIndexMap['birthDate']].trim()).toISOString(),
+                    name: values[headerIndexMap['name']],
+                    email: values[headerIndexMap['email']],
+                    phone: values[headerIndexMap['phone']],
+                    joinDate: new Date(values[headerIndexMap['joinDate']]).toISOString(),
+                    birthDate: new Date(values[headerIndexMap['birthDate']]).toISOString(),
                     status: status as 'Actif' | 'Inactif',
-                    descendance: values[headerIndexMap['descendance']].trim(),
-                    role: values[headerIndexMap['role']].trim(),
-                    avatar: `https://ui-avatars.com/api/?name=${values[headerIndexMap['name']].trim().replace(' ', '+')}&background=random`,
+                    descendance: values[headerIndexMap['descendance']],
+                    roleId: roleId,
+                    avatar: `https://ui-avatars.com/api/?name=${values[headerIndexMap['name']].replace(' ', '+')}&background=random`,
                 };
                 if (!member.name || !member.email) throw new Error("Nom ou email manquant");
                 return member;
             } catch (e) {
-                localErrors.push(`Ligne ${index + 2}: Données invalides ou mal formatées.`);
+                const message = e instanceof Error ? e.message : 'Erreur inconnue';
+                localErrors.push(`Ligne ${index + 2}: Données invalides ou mal formatées (${message}).`);
                 return null;
             }
         }).filter((m): m is Member => m !== null);
@@ -113,8 +124,7 @@ const DataImportModal: React.FC<DataImportModalProps> = ({ onClose, onImport }) 
             handleFileProcess(e.target.files[0]);
         }
     };
-
-    // FIX: Changed the event type from React.DragEvent<HTMLDivElement> to React.DragEvent<HTMLLabelElement> to match the element it's used on.
+    
     const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
         e.preventDefault();
         e.stopPropagation();
@@ -124,7 +134,6 @@ const DataImportModal: React.FC<DataImportModalProps> = ({ onClose, onImport }) 
         }
     };
     
-    // FIX: Changed the event type from React.DragEvent<HTMLDivElement> to React.DragEvent<HTMLLabelElement> to match the element it's used on.
     const handleDragEvents = (e: React.DragEvent<HTMLLabelElement>) => {
         e.preventDefault();
         e.stopPropagation();
@@ -192,7 +201,7 @@ const DataImportModal: React.FC<DataImportModalProps> = ({ onClose, onImport }) 
                 </div>
                 {errors.length > 0 && (
                     <div className="p-3 bg-red-50 dark:bg-red-900/30 rounded-md">
-                        <p className="font-medium text-red-800 dark:text-red-200">{errors.length} erreur(s) trouvée(s) :</p>
+                        <p className="font-medium text-red-800 dark:text-red-200">{errors.length} erreur(s) ou avertissement(s) trouvé(s) :</p>
                         <ul className="list-disc list-inside text-sm text-red-700 dark:text-red-300 mt-1 max-h-24 overflow-y-auto">
                             {errors.map((err, i) => <li key={i}>{err}</li>)}
                         </ul>
@@ -205,7 +214,7 @@ const DataImportModal: React.FC<DataImportModalProps> = ({ onClose, onImport }) 
                                 <tr>
                                     <th className="p-2 text-left font-medium text-gray-500 dark:text-gray-400">Nom</th>
                                     <th className="p-2 text-left font-medium text-gray-500 dark:text-gray-400">Email</th>
-                                    <th className="p-2 text-left font-medium text-gray-500 dark:text-gray-400">Statut</th>
+                                    <th className="p-2 text-left font-medium text-gray-500 dark:text-gray-400">Rôle</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white dark:bg-gray-800">
@@ -213,7 +222,7 @@ const DataImportModal: React.FC<DataImportModalProps> = ({ onClose, onImport }) 
                                     <tr key={i} className="border-t border-gray-200 dark:border-gray-700">
                                         <td className="p-2 text-gray-900 dark:text-gray-200">{member.name}</td>
                                         <td className="p-2 text-gray-900 dark:text-gray-200">{member.email}</td>
-                                        <td className="p-2 text-gray-900 dark:text-gray-200">{member.status}</td>
+                                        <td className="p-2 text-gray-900 dark:text-gray-200">{roles.find(r => r.id === member.roleId)?.name || 'N/A'}</td>
                                     </tr>
                                 ))}
                             </tbody>

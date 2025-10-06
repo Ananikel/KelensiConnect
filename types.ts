@@ -1,5 +1,11 @@
 export type Page = 'Dashboard' | 'Membres' | 'Finances' | 'Communication' | 'Événements' | 'Galerie' | 'Documentation' | 'Paramètres';
 
+export interface Role {
+  id: string;
+  name: string;
+  description: string;
+}
+
 export interface Member {
   id: number;
   name: string;
@@ -9,7 +15,7 @@ export interface Member {
   birthDate: string; // Added for birthday feature
   status: 'Actif' | 'Inactif';
   avatar: string;
-  role: string;
+  roleId: string;
   descendance: string;
 }
 

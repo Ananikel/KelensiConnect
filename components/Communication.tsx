@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Member, ChatMessage, Attachment } from '../types';
+import { Member, ChatMessage, Attachment, Role } from '../types';
 import SearchIcon from './icons/SearchIcon';
 import SendIcon from './icons/SendIcon';
 import PaperclipIcon from './icons/PaperclipIcon';
@@ -16,9 +16,10 @@ interface CommunicationProps {
     members: Member[];
     messages: ChatMessage[];
     setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
+    roles: Role[];
 }
 
-const Communication: React.FC<CommunicationProps> = ({ members, messages, setMessages }) => {
+const Communication: React.FC<CommunicationProps> = ({ members, messages, setMessages, roles }) => {
     const [selectedId, setSelectedId] = useState<number | 0 | null>(null); // 0 for group chat
     const [newMessage, setNewMessage] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
@@ -241,7 +242,7 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
                                                 {lastMessage.senderId === 'admin' && 'Vous: '}{lastMessage.text || 'Pièce jointe'}
                                              </p>
                                         ) : (
-                                             <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{member.role}</p>
+                                             <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{roles.find(r => r.id === member.roleId)?.name || 'Membre'}</p>
                                         )}
                                     </div>
                                 </button>

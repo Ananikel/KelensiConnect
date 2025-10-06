@@ -12,8 +12,8 @@ import Settings from './components/Settings';
 import Header from './components/Header';
 import Login from './components/Login';
 import NotificationCenter from './components/NotificationCenter';
-import { Page, Member, Contribution, UserProfile, ChatMessage, AppEvent, Notification, Photo, NotificationPreferences } from './types';
-import { MOCK_MEMBERS, MOCK_CONTRIBUTIONS, MOCK_MESSAGES, MOCK_EVENTS, MOCK_PHOTOS } from './constants';
+import { Page, Member, Contribution, UserProfile, ChatMessage, AppEvent, Notification, Photo, NotificationPreferences, Role } from './types';
+import { MOCK_MEMBERS, MOCK_CONTRIBUTIONS, MOCK_MESSAGES, MOCK_EVENTS, MOCK_PHOTOS, MOCK_ROLES } from './constants';
 import ProfileModal from './components/ProfileModal';
 
 const App: React.FC = () => {
@@ -26,6 +26,7 @@ const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [roles, setRoles] = useState<Role[]>(MOCK_ROLES);
   
   // State for Settings
   const [notificationPreferences, setNotificationPreferences] = useState<NotificationPreferences>(() => {
@@ -185,6 +186,7 @@ const App: React.FC = () => {
     setMessages(MOCK_MESSAGES);
     setEvents(MOCK_EVENTS);
     setPhotos(MOCK_PHOTOS);
+    setRoles(MOCK_ROLES);
     setNotifications([]);
     addNotification({ type: 'success', title: 'Réinitialisation terminée', message: 'Les données de l\'application ont été réinitialisées.' });
   };
@@ -216,11 +218,11 @@ const App: React.FC = () => {
       case 'Dashboard':
         return <Dashboard members={members} contributions={contributions} theme={theme} />;
       case 'Membres':
-        return <Members members={members} setMembers={setMembers} />;
+        return <Members members={members} setMembers={setMembers} roles={roles} />;
       case 'Finances':
         return <Finances members={members} contributions={contributions} setContributions={setContributions} theme={theme} />;
       case 'Communication':
-        return <Communication members={members} messages={messages} setMessages={setMessages} />;
+        return <Communication members={members} messages={messages} setMessages={setMessages} roles={roles} />;
        case 'Événements':
         return <Events events={events} setEvents={setEvents} members={members} />;
        case 'Galerie':
@@ -237,6 +239,7 @@ const App: React.FC = () => {
                  setNotificationPreferences={setNotificationPreferences}
                  onResetData={handleResetData}
                  onImportData={handleImportMembers}
+                 roles={roles}
                />;
       default:
         return <Dashboard members={members} contributions={contributions} theme={theme} />;

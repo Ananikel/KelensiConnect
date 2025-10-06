@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
-import { Member } from '../types';
+import { Member, Role } from '../types';
 import SearchIcon from './icons/SearchIcon';
 import CameraIcon from './icons/CameraIcon';
 import CloseIcon from './icons/CloseIcon';
@@ -11,11 +11,12 @@ import Pagination from './Pagination';
 interface MembersProps {
     members: Member[];
     setMembers: React.Dispatch<React.SetStateAction<Member[]>>;
+    roles: Role[];
 }
 
 const ITEMS_PER_PAGE = 8;
 
-const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
+const Members: React.FC<MembersProps> = ({ members, setMembers, roles }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('Tous');
     const [isAddModalOpen, setAddModalOpen] = useState(false);
@@ -32,8 +33,8 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [descendance, setDescendance] = useState('');
-    // FIX: Add birthDate state for the add member form.
     const [birthDate, setBirthDate] = useState('');
+    const [roleId, setRoleId] = useState(roles.find(r => r.id === 'member')?.id || '');
 
     // Webcam state
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
@@ -128,17 +129,15 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
         setName('');
         setEmail('');
         setDescendance('');
-        // FIX: Reset birthDate when closing the modal.
         setBirthDate('');
+        setRoleId(roles.find(r => r.id === 'member')?.id || '');
         setCapturedImage(null);
     };
     
     const handleAddMember = (e: React.FormEvent) => {
         e.preventDefault();
-        // FIX: Add check for birthDate.
-        if(!name || !email || !descendance || !birthDate) return;
+        if(!name || !email || !descendance || !birthDate || !roleId) return;
 
-        // FIX: Add missing 'birthDate' property.
         const newMember: Member = {
             id: Date.now(),
             name,
@@ -149,7 +148,7 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
             joinDate: new Date().toISOString(),
             status: 'Actif',
             phone: '',
-            role: 'Membre',
+            roleId,
         };
         setMembers(prev => [newMember, ...prev]);
         handleCloseAddModal();
@@ -195,7 +194,8 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
     };
 
     const handleExportMembers = () => {
-        const headers = ['ID', 'Nom', 'Email', 'Téléphone', "Date d'adhésion", 'Statut', 'Descendance'];
+        const rolesMap = new Map(roles.map(r => [r.id, r.name]));
+        const headers = ['ID', 'Nom', 'Email', 'Téléphone', "Date d'adhésion", 'Statut', 'Rôle', 'Descendance'];
         const csvRows = [
             headers.join(','),
             ...members.map(m => [
@@ -205,6 +205,7 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                 m.phone,
                 new Date(m.joinDate).toLocaleDateString('fr-FR'),
                 m.status,
+                rolesMap.get(m.roleId) || 'N/A',
                 `"${m.descendance.replace(/"/g, '""')}"`
             ].join(','))
         ];
@@ -265,7 +266,7 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                             <tr>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Nom</th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Descendance</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rôle</th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date d'adhésion</th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Statut</th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
@@ -287,11 +288,12 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                                             </div>
                                             <div className="ml-4">
                                                 <div className="text-sm font-medium text-gray-900 dark:text-gray-200">{member.name}</div>
+                                                <div className="text-xs text-gray-500 dark:text-gray-400">{member.descendance}</div>
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-200">{member.email}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{member.descendance}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{roles.find(r => r.id === member.roleId)?.name || 'N/A'}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                         {new Date(member.joinDate).toLocaleDateString('fr-FR')}
                                     </td>
@@ -349,13 +351,18 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                                 <input type="email" id="email" value={email} onChange={e => setEmail(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required />
                             </div>
                             <div>
+                                <label htmlFor="roleId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Rôle</label>
+                                <select id="roleId" value={roleId} onChange={e => setRoleId(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required>
+                                    {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                                </select>
+                            </div>
+                            <div>
                                 <label htmlFor="descendance" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Descendance</label>
                                 <input list="descendances-list" id="descendance" value={descendance} onChange={e => setDescendance(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required />
                                 <datalist id="descendances-list">
                                     {descendances.map(d => <option key={d} value={d} />)}
                                 </datalist>
                             </div>
-                            {/* FIX: Add input field for birthDate. */}
                             <div>
                                 <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date de naissance</label>
                                 <input type="date" id="birthDate" value={birthDate} onChange={e => setBirthDate(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required />
@@ -411,16 +418,21 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                                 <input type="email" id="edit-email" value={editingMember.email} onChange={e => setEditingMember({...editingMember, email: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required />
                             </div>
                             <div>
+                                <label htmlFor="edit-roleId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Rôle</label>
+                                <select id="edit-roleId" value={editingMember.roleId} onChange={e => setEditingMember({...editingMember, roleId: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required>
+                                    {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                                </select>
+                            </div>
+                            <div>
                                 <label htmlFor="edit-descendance" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Descendance</label>
                                 <input list="descendances-list" id="edit-descendance" value={editingMember.descendance} onChange={e => setEditingMember({...editingMember, descendance: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required />
                                 <datalist id="descendances-list">
                                     {descendances.map(d => <option key={d} value={d} />)}
                                 </datalist>
                             </div>
-                            {/* FIX: Add input field for birthDate in edit modal. */}
                             <div>
                                 <label htmlFor="edit-birthDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date de naissance</label>
-                                <input type="date" id="edit-birthDate" value={editingMember.birthDate} onChange={e => setEditingMember({...editingMember, birthDate: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required />
+                                <input type="date" id="edit-birthDate" value={editingMember.birthDate.split('T')[0]} onChange={e => setEditingMember({...editingMember, birthDate: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required />
                             </div>
                             <div>
                                 <label htmlFor="edit-status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Statut</label>

@@ -1,13 +1,15 @@
 
 import React, { useState } from 'react';
-import { UserProfile, NotificationPreferences, Member } from '../types';
+import { UserProfile, NotificationPreferences, Member, Role } from '../types';
 import UserIcon from './icons/UserIcon';
 import SunIcon from './icons/SunIcon';
 import MoonIcon from './icons/MoonIcon';
 import BellIcon from './icons/BellIcon';
 import DatabaseIcon from './icons/DatabaseIcon';
 import ImportIcon from './icons/ImportIcon';
+import ShieldCheckIcon from './icons/ShieldCheckIcon';
 import DataImportModal from './DataImportModal';
+import RolesPermissions from './RolesPermissions';
 
 interface SettingsProps {
     userProfile: UserProfile;
@@ -18,6 +20,7 @@ interface SettingsProps {
     setNotificationPreferences: React.Dispatch<React.SetStateAction<NotificationPreferences>>;
     onResetData: () => void;
     onImportData: (newMembers: Member[]) => void;
+    roles: Role[];
 }
 
 const SettingsCard: React.FC<{ title: string; description: string; icon: React.ReactNode; children: React.ReactNode }> = ({ title, description, icon, children }) => (
@@ -56,8 +59,9 @@ const ToggleSwitch: React.FC<{ enabled: boolean; onChange: (enabled: boolean) =>
 );
 
 
-const Settings: React.FC<SettingsProps> = ({ userProfile, setProfileModalOpen, theme, toggleTheme, notificationPreferences, setNotificationPreferences, onResetData, onImportData }) => {
+const Settings: React.FC<SettingsProps> = ({ userProfile, setProfileModalOpen, theme, toggleTheme, notificationPreferences, setNotificationPreferences, onResetData, onImportData, roles }) => {
     
+    const [view, setView] = useState<'main' | 'roles'>('main');
     const [isResetModalOpen, setResetModalOpen] = useState(false);
     const [isImportModalOpen, setImportModalOpen] = useState(false);
 
@@ -69,6 +73,10 @@ const Settings: React.FC<SettingsProps> = ({ userProfile, setProfileModalOpen, t
         onResetData();
         setResetModalOpen(false);
     };
+
+    if (view === 'roles') {
+        return <RolesPermissions roles={roles} onBack={() => setView('main')} />;
+    }
 
     return (
         <>
@@ -128,6 +136,19 @@ const Settings: React.FC<SettingsProps> = ({ userProfile, setProfileModalOpen, t
                     />
                 </SettingsCard>
 
+                <SettingsCard
+                    title="Rôles & Permissions"
+                    description="Définissez les rôles et gérez les accès des utilisateurs."
+                    icon={<ShieldCheckIcon />}
+                >
+                    <div className="flex items-center justify-between">
+                        <p className="font-medium text-gray-700 dark:text-gray-300">Gérer les rôles</p>
+                        <button onClick={() => setView('roles')} className="px-4 py-2 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Gérer
+                        </button>
+                    </div>
+                </SettingsCard>
+
                  <SettingsCard
                     title="Données de l'application"
                     description="Gérez les données de votre association."
@@ -174,6 +195,7 @@ const Settings: React.FC<SettingsProps> = ({ userProfile, setProfileModalOpen, t
                 <DataImportModal 
                     onClose={() => setImportModalOpen(false)}
                     onImport={onImportData}
+                    roles={roles}
                 />
             )}
         </>
