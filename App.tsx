@@ -189,6 +189,28 @@ const App: React.FC = () => {
     addNotification({ type: 'success', title: 'Réinitialisation terminée', message: 'Les données de l\'application ont été réinitialisées.' });
   };
 
+  const handleImportMembers = (newMembers: Member[]) => {
+    const existingEmails = new Set(members.map(m => m.email));
+    const membersToAdd = newMembers.filter(nm => !existingEmails.has(nm.email));
+
+    setMembers(prev => [...prev, ...membersToAdd]);
+    
+    addNotification({ 
+        type: 'success', 
+        title: 'Importation réussie', 
+        message: `${membersToAdd.length} nouveau(x) membre(s) ont été ajouté(s).` 
+    });
+
+     if (newMembers.length > membersToAdd.length) {
+         addNotification({
+             type: 'info',
+             title: 'Doublons ignorés',
+             message: `${newMembers.length - membersToAdd.length} membre(s) ont été ignorés car leur email existait déjà.`
+         });
+     }
+  };
+
+
   const renderPage = () => {
     switch (currentPage) {
       case 'Dashboard':
@@ -214,6 +236,7 @@ const App: React.FC = () => {
                  notificationPreferences={notificationPreferences}
                  setNotificationPreferences={setNotificationPreferences}
                  onResetData={handleResetData}
+                 onImportData={handleImportMembers}
                />;
       default:
         return <Dashboard members={members} contributions={contributions} theme={theme} />;

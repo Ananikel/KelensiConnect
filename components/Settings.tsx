@@ -1,10 +1,13 @@
+
 import React, { useState } from 'react';
-import { UserProfile, NotificationPreferences } from '../types';
+import { UserProfile, NotificationPreferences, Member } from '../types';
 import UserIcon from './icons/UserIcon';
 import SunIcon from './icons/SunIcon';
 import MoonIcon from './icons/MoonIcon';
 import BellIcon from './icons/BellIcon';
 import DatabaseIcon from './icons/DatabaseIcon';
+import ImportIcon from './icons/ImportIcon';
+import DataImportModal from './DataImportModal';
 
 interface SettingsProps {
     userProfile: UserProfile;
@@ -14,6 +17,7 @@ interface SettingsProps {
     notificationPreferences: NotificationPreferences;
     setNotificationPreferences: React.Dispatch<React.SetStateAction<NotificationPreferences>>;
     onResetData: () => void;
+    onImportData: (newMembers: Member[]) => void;
 }
 
 const SettingsCard: React.FC<{ title: string; description: string; icon: React.ReactNode; children: React.ReactNode }> = ({ title, description, icon, children }) => (
@@ -27,7 +31,7 @@ const SettingsCard: React.FC<{ title: string; description: string; icon: React.R
                 </div>
             </div>
         </div>
-        <div className="p-5 bg-gray-50 dark:bg-gray-800/50">
+        <div className="p-5 bg-gray-50 dark:bg-gray-800/50 space-y-4">
             {children}
         </div>
     </div>
@@ -52,9 +56,10 @@ const ToggleSwitch: React.FC<{ enabled: boolean; onChange: (enabled: boolean) =>
 );
 
 
-const Settings: React.FC<SettingsProps> = ({ userProfile, setProfileModalOpen, theme, toggleTheme, notificationPreferences, setNotificationPreferences, onResetData }) => {
+const Settings: React.FC<SettingsProps> = ({ userProfile, setProfileModalOpen, theme, toggleTheme, notificationPreferences, setNotificationPreferences, onResetData, onImportData }) => {
     
     const [isResetModalOpen, setResetModalOpen] = useState(false);
+    const [isImportModalOpen, setImportModalOpen] = useState(false);
 
     const handleToggleNotification = (key: keyof NotificationPreferences) => {
         setNotificationPreferences(prev => ({ ...prev, [key]: !prev[key] }));
@@ -109,20 +114,18 @@ const Settings: React.FC<SettingsProps> = ({ userProfile, setProfileModalOpen, t
                     description="Choisissez les notifications automatiques que vous souhaitez recevoir."
                     icon={<BellIcon />}
                 >
-                    <div className="space-y-4">
-                        <ToggleSwitch
-                            label="Événements à venir"
-                            description="Recevoir un rappel pour les événements dans les 7 prochains jours."
-                            enabled={notificationPreferences.upcomingEvents}
-                            onChange={() => handleToggleNotification('upcomingEvents')}
-                        />
-                        <ToggleSwitch
-                            label="Cotisations en attente"
-                            description="Être notifié si des membres actifs n'ont pas cotisé récemment."
-                            enabled={notificationPreferences.pendingContributions}
-                            onChange={() => handleToggleNotification('pendingContributions')}
-                        />
-                    </div>
+                    <ToggleSwitch
+                        label="Événements à venir"
+                        description="Recevoir un rappel pour les événements dans les 7 prochains jours."
+                        enabled={notificationPreferences.upcomingEvents}
+                        onChange={() => handleToggleNotification('upcomingEvents')}
+                    />
+                    <ToggleSwitch
+                        label="Cotisations en attente"
+                        description="Être notifié si des membres actifs n'ont pas cotisé récemment."
+                        enabled={notificationPreferences.pendingContributions}
+                        onChange={() => handleToggleNotification('pendingContributions')}
+                    />
                 </SettingsCard>
 
                  <SettingsCard
@@ -131,12 +134,22 @@ const Settings: React.FC<SettingsProps> = ({ userProfile, setProfileModalOpen, t
                     icon={<DatabaseIcon />}
                 >
                     <div className="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0">
-                        <p className="font-medium text-gray-700 dark:text-gray-300">Réinitialiser les données</p>
-                        <button onClick={() => setResetModalOpen(true)} className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                            Réinitialiser l'application
+                        <p className="font-medium text-gray-700 dark:text-gray-300">Importer des membres (CSV)</p>
+                        <button onClick={() => setImportModalOpen(true)} className="flex items-center space-x-2 px-4 py-2 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <ImportIcon />
+                            <span>Importer</span>
                         </button>
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">Attention : Cette action supprimera toutes les données actuelles et les remplacera par les données de démonstration. Cette action est irréversible.</p>
+                    <div className="border-t border-gray-200 dark:border-gray-700"></div>
+                    <div>
+                        <div className="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0">
+                            <p className="font-medium text-gray-700 dark:text-gray-300">Réinitialiser les données</p>
+                            <button onClick={() => setResetModalOpen(true)} className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                Réinitialiser l'application
+                            </button>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">Attention : Cette action supprimera toutes les données actuelles et les remplacera par les données de démonstration. Cette action est irréversible.</p>
+                    </div>
                 </SettingsCard>
             </div>
 
@@ -155,6 +168,13 @@ const Settings: React.FC<SettingsProps> = ({ userProfile, setProfileModalOpen, t
                         </div>
                     </div>
                 </div>
+            )}
+            
+            {isImportModalOpen && (
+                <DataImportModal 
+                    onClose={() => setImportModalOpen(false)}
+                    onImport={onImportData}
+                />
             )}
         </>
     );
