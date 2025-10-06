@@ -52,13 +52,20 @@ const Header: React.FC<HeaderProps> = ({ title, userProfile, setUserProfile, onL
             <button
                 onClick={toggleTheme}
                 className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                aria-label="Toggle theme"
+                aria-label="Changer de thème"
             >
                 {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
             </button>
 
             <div className="relative" ref={dropdownRef}>
-                <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setDropdownOpen(prev => !prev)}>
+                <button 
+                  type="button" 
+                  className="flex items-center space-x-3 cursor-pointer rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" 
+                  onClick={() => setDropdownOpen(prev => !prev)}
+                  aria-haspopup="true"
+                  aria-expanded={isDropdownOpen}
+                  aria-label="Ouvrir le menu utilisateur"
+                >
                   <img 
                     src={userProfile.avatar}
                     alt="Admin Avatar" 
@@ -68,7 +75,7 @@ const Header: React.FC<HeaderProps> = ({ title, userProfile, setUserProfile, onL
                     <span className="font-medium text-gray-700 dark:text-gray-300">{userProfile.name}</span>
                     <ChevronDownIcon />
                   </div>
-                </div>
+                </button>
                 {isDropdownOpen && (
                      <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 ring-1 ring-black dark:ring-gray-700 ring-opacity-5">
                         <button 
@@ -76,14 +83,14 @@ const Header: React.FC<HeaderProps> = ({ title, userProfile, setUserProfile, onL
                               setProfileModalOpen(true);
                               setDropdownOpen(false);
                             }}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700"
                         >
                             <UserIcon />
                             <span className="ml-2">Mon Profil</span>
                         </button>
                         <button 
                             onClick={onLogout}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700"
                         >
                             <LogoutIcon />
                             <span className="ml-2">Se déconnecter</span>

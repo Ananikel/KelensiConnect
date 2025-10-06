@@ -22,7 +22,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, onSave, onClose }) =>
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md">
                 <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
                     <h3 className="text-lg font-semibold dark:text-gray-200">Modifier mon profil</h3>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label="Fermer">
                         <CloseIcon />
                     </button>
                 </div>
@@ -53,8 +53,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, onSave, onClose }) =>
                         />
                     </div>
                     <div className="pt-4 flex justify-end">
-                        <button type="button" onClick={onClose} className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md mr-2">Annuler</button>
-                        <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md">Enregistrer</button>
+                        <button type="button" onClick={onClose} className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md mr-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">Annuler</button>
+                        <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Enregistrer</button>
                     </div>
                 </form>
             </div>

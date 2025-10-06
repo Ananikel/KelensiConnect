@@ -147,26 +147,27 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
                     </div>
                     <div className="flex-1 overflow-y-auto">
                         {/* Group Chat */}
-                        <div onClick={() => setSelectedId(0)} className={`flex items-center p-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${selectedId === 0 ? 'bg-indigo-50 dark:bg-indigo-900/50' : ''}`}>
+                        <button type="button" onClick={() => setSelectedId(0)} className={`flex items-center p-4 cursor-pointer w-full text-left hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700 ${selectedId === 0 ? 'bg-indigo-50 dark:bg-indigo-900/50' : ''}`}>
                              <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center mr-4 text-indigo-600 dark:text-indigo-400"><UsersIcon /></div>
                              <div>
                                 <p className="font-semibold text-gray-800 dark:text-gray-200">Discussion Générale</p>
                                 <p className="text-sm text-gray-500 dark:text-gray-400">Canal pour toute l'association</p>
                             </div>
-                        </div>
+                        </button>
 
                         {filteredMembers.map(member => (
-                            <div 
+                            <button
+                                type="button"
                                 key={member.id}
                                 onClick={() => setSelectedId(member.id)}
-                                className={`flex items-center p-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${selectedId === member.id ? 'bg-indigo-50 dark:bg-indigo-900/50' : ''}`}
+                                className={`flex items-center p-4 cursor-pointer w-full text-left hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700 ${selectedId === member.id ? 'bg-indigo-50 dark:bg-indigo-900/50' : ''}`}
                             >
                                 <img src={member.avatar} alt={member.name} className="w-12 h-12 rounded-full object-cover mr-4"/>
                                 <div>
                                     <p className="font-semibold text-gray-800 dark:text-gray-200">{member.name}</p>
                                     <p className="text-sm text-gray-500 dark:text-gray-400">{member.role}</p>
                                 </div>
-                            </div>
+                            </button>
                         ))}
                     </div>
                 </div>
@@ -194,16 +195,16 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
                                 </div>
                                 <div>
                                     {selectedId === 0 ? (
-                                        <button onClick={() => setIsCalling(true)} className="flex items-center space-x-2 px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors" title="Démarrer un appel de groupe">
+                                        <button onClick={() => setIsCalling(true)} className="flex items-center space-x-2 px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" aria-label="Démarrer un appel de groupe">
                                             <VideoIcon />
                                             <span>Appel de groupe</span>
                                         </button>
                                     ) : (
                                         <div className="flex items-center space-x-4">
-                                            <button onClick={() => setIsCalling(true)} className="p-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" title="Appel Audio">
+                                            <button onClick={() => setIsCalling(true)} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label="Démarrer un appel audio">
                                                 <PhoneIcon />
                                             </button>
-                                            <button onClick={() => setIsCalling(true)} className="p-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" title="Appel Vidéo">
+                                            <button onClick={() => setIsCalling(true)} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label="Démarrer un appel vidéo">
                                                 <VideoIcon />
                                             </button>
                                         </div>
@@ -237,7 +238,7 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
                             <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
                                 <form onSubmit={handleSendMessage} className="flex items-center space-x-4">
                                     <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
-                                    <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">
+                                    <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label="Joindre un fichier">
                                         <PaperclipIcon />
                                     </button>
                                     <input 
@@ -248,7 +249,7 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
                                         className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
                                         autoComplete="off"
                                     />
-                                    <button type="submit" className="bg-indigo-600 text-white p-3 rounded-full hover:bg-indigo-700 transition-colors shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300" disabled={!newMessage.trim() && !attachment}>
+                                    <button type="submit" className="bg-indigo-600 text-white p-3 rounded-full hover:bg-indigo-700 transition-colors shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300" disabled={!newMessage.trim() && !attachment} aria-label="Envoyer le message">
                                         <SendIcon />
                                     </button>
                                 </form>

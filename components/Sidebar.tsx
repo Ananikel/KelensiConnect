@@ -38,10 +38,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage }) => {
                   e.preventDefault();
                   setCurrentPage(item.name);
                 }}
-                className={`flex items-center p-3 rounded-lg transition-colors duration-200 ${
+                className={`flex items-center p-3 rounded-lg transition-colors duration-200 focus:outline-none ${
                   currentPage === item.name
                     ? 'bg-indigo-600 text-white shadow-md'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400 focus:bg-indigo-100 dark:focus:bg-gray-700 focus:text-indigo-600 dark:focus:text-indigo-400'
                 }`}
               >
                 <span className="w-6 h-6 mr-3">{item.icon}</span>

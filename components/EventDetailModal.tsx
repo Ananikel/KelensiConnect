@@ -84,7 +84,7 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, members, onC
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
                 <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-200">{event.title}</h3>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"><CloseIcon /></button>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label="Fermer"><CloseIcon /></button>
                 </div>
                 <div className="p-6 overflow-y-auto">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-sm text-gray-700 dark:text-gray-300">
@@ -131,7 +131,7 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, members, onC
                     </div>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-700 px-6 py-4 flex justify-end">
-                    <button onClick={onClose} className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Fermer</button>
+                    <button onClick={onClose} className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Fermer</button>
                 </div>
             </div>
         </div>

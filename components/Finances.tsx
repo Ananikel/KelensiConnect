@@ -243,11 +243,11 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
                             <option value="Payé">Payé</option>
                             <option value="En attente">En attente</option>
                         </select>
-                        <button onClick={handleExportContributions} className="flex items-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors shadow">
+                        <button onClick={handleExportContributions} className="flex items-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                             <DownloadIcon />
                             <span className="ml-2 hidden md:inline">Exporter</span>
                         </button>
-                         <button onClick={handleOpenModal} className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors shadow">
+                         <button onClick={handleOpenModal} className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             <PlusIcon />
                             <span className="ml-2 hidden md:inline">Ajouter</span>
                         </button>
@@ -302,7 +302,7 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md">
                         <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
                             <h3 className="text-lg font-semibold dark:text-gray-200">Ajouter une Contribution</h3>
-                            <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"><CloseIcon /></button>
+                            <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label="Fermer"><CloseIcon /></button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
@@ -338,8 +338,8 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
                                 </div>
                             </div>
                             <div className="pt-4 flex justify-end">
-                                <button type="button" onClick={handleCloseModal} className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md mr-2">Annuler</button>
-                                <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md">Ajouter</button>
+                                <button type="button" onClick={handleCloseModal} className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md mr-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">Annuler</button>
+                                <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Ajouter</button>
                             </div>
                         </form>
                     </div>

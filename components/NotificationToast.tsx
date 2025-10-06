@@ -53,7 +53,7 @@ const NotificationToast: React.FC<NotificationToastProps> = ({ notification, onD
                 <h4 className="font-bold text-gray-800 dark:text-gray-200">{notification.title}</h4>
                 <p className="text-sm text-gray-600 dark:text-gray-400">{notification.message}</p>
             </div>
-            <button onClick={onDismiss} className="ml-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0">
+            <button onClick={onDismiss} className="ml-4 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label="Fermer la notification">
                 <CloseIcon />
             </button>
              <style>{`

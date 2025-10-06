@@ -19,8 +19,8 @@ interface EventsProps {
 const EventCard: React.FC<{ event: AppEvent; onEdit: () => void; onDelete: () => void; onView: () => void; isPast: boolean }> = ({ event, onEdit, onDelete, onView, isPast }) => {
     const attendeesCount = event.rsvps?.filter(r => r.status === 'Attending').length || 0;
     return (
-        <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-md flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${isPast ? 'opacity-60' : ''}`}>
-            <div className="p-5 cursor-pointer flex-grow" onClick={onView}>
+        <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-md flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl ${isPast ? 'opacity-60' : 'hover:-translate-y-1'}`}>
+            <button type="button" onClick={onView} className="p-5 text-left flex-grow focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 rounded-t-lg">
                 <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">{event.title}</h3>
                 <div className="space-y-2 text-gray-600 dark:text-gray-400">
                     <div className="flex items-center">
@@ -37,17 +37,17 @@ const EventCard: React.FC<{ event: AppEvent; onEdit: () => void; onDelete: () =>
                     </div>
                 </div>
                 <p className="text-gray-700 dark:text-gray-300 mt-4 text-sm flex-grow">{event.description}</p>
-            </div>
+            </button>
             <div className="bg-gray-50 dark:bg-gray-700/50 px-5 py-3 flex justify-between items-center">
                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                     <div className="w-5 h-5"><UsersIcon /></div>
                     <span className="ml-2 font-medium">{attendeesCount} participant(s)</span>
                  </div>
                  <div className="flex space-x-3">
-                    <button onClick={onEdit} className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300" title="Modifier">
+                    <button onClick={onEdit} className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" aria-label={`Modifier l'événement ${event.title}`}>
                         <EditIcon />
                     </button>
-                    <button onClick={onDelete} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300" title="Supprimer">
+                    <button onClick={onDelete} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" aria-label={`Supprimer l'événement ${event.title}`}>
                         <DeleteIcon />
                     </button>
                 </div>
@@ -96,6 +96,10 @@ const Events: React.FC<EventsProps> = ({ events, setEvents, members }) => {
                 event.id === eventId ? { ...event, rsvps: newRsvps } : event
             )
         );
+        // Also update the viewingEvent state to reflect the change immediately in the modal
+        if (viewingEvent && viewingEvent.id === eventId) {
+            setViewingEvent(prev => prev ? { ...prev, rsvps: newRsvps } : null);
+        }
     };
 
     const handleOpenDeleteModal = (event: AppEvent) => {
@@ -117,7 +121,7 @@ const Events: React.FC<EventsProps> = ({ events, setEvents, members }) => {
         <>
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">Calendrier des Événements</h2>
-                <button onClick={() => handleOpenModal()} className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors shadow">
+                <button onClick={() => handleOpenModal()} className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     <PlusIcon />
                     <span className="ml-2">Ajouter un événement</span>
                 </button>
@@ -165,8 +169,8 @@ const Events: React.FC<EventsProps> = ({ events, setEvents, members }) => {
                             </p>
                          </div>
                         <div className="bg-gray-50 dark:bg-gray-700 px-6 py-4 flex justify-end space-x-3">
-                            <button type="button" onClick={handleCloseDeleteModal} className="bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-md border border-gray-300 dark:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-500">Annuler</button>
-                            <button type="button" onClick={handleConfirmDelete} className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">Supprimer</button>
+                            <button type="button" onClick={handleCloseDeleteModal} className="bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-md border border-gray-300 dark:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Annuler</button>
+                            <button type="button" onClick={handleConfirmDelete} className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Supprimer</button>
                         </div>
                     </div>
                 </div>
@@ -192,7 +196,7 @@ const EventModal: React.FC<{ event: AppEvent | null; onSave: (data: Omit<AppEven
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg max-h-full overflow-y-auto">
                 <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
                     <h3 className="text-lg font-semibold dark:text-gray-200">{event ? 'Modifier' : 'Ajouter'} un événement</h3>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"><CloseIcon /></button>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label="Fermer"><CloseIcon /></button>
                 </div>
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <div>
@@ -218,8 +222,8 @@ const EventModal: React.FC<{ event: AppEvent | null; onSave: (data: Omit<AppEven
                         <textarea id="description" value={description} onChange={e => setDescription(e.target.value)} rows={4} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required />
                     </div>
                     <div className="pt-4 flex justify-end">
-                        <button type="button" onClick={onClose} className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md mr-2">Annuler</button>
-                        <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md">Enregistrer</button>
+                        <button type="button" onClick={onClose} className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md mr-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">Annuler</button>
+                        <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Enregistrer</button>
                     </div>
                 </form>
             </div>

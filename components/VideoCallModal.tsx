@@ -111,19 +111,19 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({ isGroupCall, targetMemb
             <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center space-x-4 bg-gray-900/70 backdrop-blur-sm p-3 rounded-full z-20">
                 <button 
                     onClick={toggleMic} 
-                    className={`p-3 rounded-full transition-colors ${isMicOn ? 'bg-gray-600 hover:bg-gray-500' : 'bg-red-600 hover:bg-red-500'}`}
-                    title={isMicOn ? "Couper le micro" : "Activer le micro"}
+                    className={`p-3 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white focus:ring-offset-gray-900 ${isMicOn ? 'bg-gray-600 hover:bg-gray-500' : 'bg-red-600 hover:bg-red-500'}`}
+                    aria-label={isMicOn ? "Couper le micro" : "Activer le micro"}
                 >
                     {isMicOn ? <MicOnIcon /> : <MicOffIcon />}
                 </button>
                 <button 
                     onClick={toggleCamera} 
-                    className={`p-3 rounded-full transition-colors ${isCameraOn ? 'bg-gray-600 hover:bg-gray-500' : 'bg-red-600 hover:bg-red-500'}`}
-                    title={isCameraOn ? "Couper la caméra" : "Activer la caméra"}
+                    className={`p-3 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white focus:ring-offset-gray-900 ${isCameraOn ? 'bg-gray-600 hover:bg-gray-500' : 'bg-red-600 hover:bg-red-500'}`}
+                    aria-label={isCameraOn ? "Couper la caméra" : "Activer la caméra"}
                 >
                     {isCameraOn ? <VideoOnIcon /> : <VideoOffIcon />}
                 </button>
-                <button onClick={handleHangUp} className="p-3 bg-red-600 rounded-full hover:bg-red-500 transition-colors" title="Raccrocher">
+                <button onClick={handleHangUp} className="p-3 bg-red-600 rounded-full hover:bg-red-500 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white focus:ring-offset-gray-900" aria-label="Raccrocher">
                     <div className="rotate-[135deg]">
                         <PhoneIcon />
                     </div>

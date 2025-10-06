@@ -249,11 +249,11 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                             <option>Actif</option>
                             <option>Inactif</option>
                         </select>
-                        <button onClick={handleExportMembers} className="flex items-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors shadow">
+                        <button onClick={handleExportMembers} className="flex items-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                             <DownloadIcon />
                             <span className="ml-2 hidden md:inline">Exporter</span>
                         </button>
-                         <button onClick={handleOpenAddModal} className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors shadow">
+                         <button onClick={handleOpenAddModal} className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             Ajouter Membre
                         </button>
                     </div>
@@ -277,12 +277,13 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center">
                                             <div className="flex-shrink-0 h-10 w-10">
-                                                <img 
-                                                    className="h-10 w-10 rounded-full object-cover cursor-pointer" 
-                                                    src={member.avatar} 
-                                                    alt={member.name} 
-                                                    onClick={() => handleAvatarClick(member.avatar)}
-                                                />
+                                                <button type="button" onClick={() => handleAvatarClick(member.avatar)} className="rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" aria-label={`Agrandir l'avatar de ${member.name}`}>
+                                                    <img 
+                                                        className="h-10 w-10 rounded-full object-cover" 
+                                                        src={member.avatar} 
+                                                        alt={member.name} 
+                                                    />
+                                                </button>
                                             </div>
                                             <div className="ml-4">
                                                 <div className="text-sm font-medium text-gray-900 dark:text-gray-200">{member.name}</div>
@@ -303,10 +304,10 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div className="flex items-center space-x-4">
-                                            <button onClick={() => handleOpenEditModal(member)} className="text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400" title="Modifier">
+                                            <button onClick={() => handleOpenEditModal(member)} className="text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" aria-label={`Modifier ${member.name}`}>
                                                 <EditIcon />
                                             </button>
-                                            <button onClick={() => handleOpenDeleteModal(member)} className="text-red-600 hover:text-red-900 dark:hover:text-red-400" title="Supprimer">
+                                            <button onClick={() => handleOpenDeleteModal(member)} className="text-red-600 hover:text-red-900 dark:hover:text-red-400 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" aria-label={`Supprimer ${member.name}`}>
                                                 <DeleteIcon />
                                             </button>
                                         </div>
@@ -334,7 +335,7 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg max-h-full overflow-y-auto">
                         <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
                             <h3 className="text-lg font-semibold dark:text-gray-200">Ajouter un nouveau membre</h3>
-                            <button onClick={handleCloseAddModal} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                            <button onClick={handleCloseAddModal} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label="Fermer">
                                <CloseIcon />
                             </button>
                         </div>
@@ -365,15 +366,15 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                                     {capturedImage ? (
                                         <div className="text-center">
                                             <img src={capturedImage} alt="Captured" className="w-32 h-32 rounded-full object-cover mx-auto" />
-                                            <button type="button" onClick={handleRetake} className="mt-2 text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">Reprendre la photo</button>
+                                            <button type="button" onClick={handleRetake} className="mt-2 text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-md">Reprendre la photo</button>
                                         </div>
                                     ) : isCameraOn ? (
                                         <div className="text-center">
                                             <video ref={videoRef} autoPlay playsInline className="w-full h-auto rounded-md mb-2"></video>
-                                            <button type="button" onClick={handleCapture} className="px-4 py-2 bg-indigo-600 text-white rounded-md">Capturer</button>
+                                            <button type="button" onClick={handleCapture} className="px-4 py-2 bg-indigo-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Capturer</button>
                                         </div>
                                     ) : (
-                                        <button type="button" onClick={startCamera} className="flex flex-col items-center space-y-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">
+                                        <button type="button" onClick={startCamera} className="flex flex-col items-center space-y-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                             <CameraIcon />
                                             <span>Prendre une photo</span>
                                         </button>
@@ -382,8 +383,8 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                                 </div>
                             </div>
                             <div className="pt-4 flex justify-end">
-                                <button type="button" onClick={handleCloseAddModal} className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md mr-2">Annuler</button>
-                                <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md">Ajouter</button>
+                                <button type="button" onClick={handleCloseAddModal} className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md mr-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">Annuler</button>
+                                <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Ajouter</button>
                             </div>
                         </form>
                     </div>
@@ -396,7 +397,7 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg max-h-full overflow-y-auto">
                         <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
                             <h3 className="text-lg font-semibold dark:text-gray-200">Modifier le membre</h3>
-                            <button onClick={handleCloseEditModal} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                            <button onClick={handleCloseEditModal} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label="Fermer">
                                <CloseIcon />
                             </button>
                         </div>
@@ -434,15 +435,15 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                                     { (capturedImage || editingMember.avatar) && !isCameraOn ? (
                                         <div className="text-center">
                                             <img src={capturedImage || editingMember.avatar} alt="Avatar" className="w-32 h-32 rounded-full object-cover mx-auto" />
-                                            <button type="button" onClick={handleRetake} className="mt-2 text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">Changer la photo</button>
+                                            <button type="button" onClick={handleRetake} className="mt-2 text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-md">Changer la photo</button>
                                         </div>
                                     ) : isCameraOn ? (
                                         <div className="text-center">
                                             <video ref={videoRef} autoPlay playsInline className="w-full h-auto rounded-md mb-2"></video>
-                                            <button type="button" onClick={handleCapture} className="px-4 py-2 bg-indigo-600 text-white rounded-md">Capturer</button>
+                                            <button type="button" onClick={handleCapture} className="px-4 py-2 bg-indigo-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Capturer</button>
                                         </div>
                                     ) : (
-                                        <button type="button" onClick={startCamera} className="flex flex-col items-center space-y-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">
+                                        <button type="button" onClick={startCamera} className="flex flex-col items-center space-y-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                             <CameraIcon />
                                             <span>Prendre une photo</span>
                                         </button>
@@ -451,8 +452,8 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                                 </div>
                             </div>
                             <div className="pt-4 flex justify-end">
-                                <button type="button" onClick={handleCloseEditModal} className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md mr-2">Annuler</button>
-                                <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md">Enregistrer</button>
+                                <button type="button" onClick={handleCloseEditModal} className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md mr-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">Annuler</button>
+                                <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Enregistrer</button>
                             </div>
                         </form>
                     </div>
@@ -470,8 +471,8 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                             </p>
                          </div>
                         <div className="bg-gray-50 dark:bg-gray-700 px-6 py-4 flex justify-end space-x-3">
-                            <button type="button" onClick={handleCloseDeleteModal} className="bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-md border border-gray-300 dark:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-500">Annuler</button>
-                            <button type="button" onClick={handleConfirmDelete} className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">Supprimer</button>
+                            <button type="button" onClick={handleCloseDeleteModal} className="bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-md border border-gray-300 dark:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Annuler</button>
+                            <button type="button" onClick={handleConfirmDelete} className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Supprimer</button>
                         </div>
                     </div>
                 </div>
@@ -482,7 +483,7 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                  <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4" onClick={() => setAvatarModalOpen(false)}>
                     <div className="relative" onClick={(e) => e.stopPropagation()}>
                         <img src={selectedAvatar} alt="Avatar" className="max-w-[80vw] max-h-[80vh] rounded-lg shadow-xl" />
-                        <button onClick={() => setAvatarModalOpen(false)} className="absolute -top-4 -right-4 bg-white rounded-full p-1 text-gray-700 hover:text-black">
+                        <button onClick={() => setAvatarModalOpen(false)} className="absolute -top-4 -right-4 bg-white rounded-full p-1 text-gray-700 hover:text-black focus:outline-none focus:ring-2 focus:ring-white" aria-label="Fermer">
                             <CloseIcon />
                         </button>
                     </div>
