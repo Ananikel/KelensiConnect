@@ -26,8 +26,13 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, onSave, onClose }) =>
             streamRef.current.getTracks().forEach(track => track.stop());
             streamRef.current = null;
         }
-        setCameraActive(false);
     }, []);
+
+    const handleCancelCamera = useCallback(() => {
+        stopCamera();
+        setCameraActive(false);
+        setCameraError(null);
+    }, [stopCamera]);
 
     useEffect(() => {
         return () => stopCamera();
@@ -48,6 +53,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, onSave, onClose }) =>
         } catch (err) {
             console.error("Erreur d'accès à la caméra:", err);
             setCameraError("Impossible d'accéder à la caméra. Veuillez vérifier les autorisations.");
+            setCameraActive(false);
         }
     };
 
@@ -60,12 +66,16 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, onSave, onClose }) =>
             context?.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
             setAvatar(canvasRef.current.toDataURL('image/jpeg', 0.9));
             stopCamera();
+            setCameraActive(false);
         }
     };
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            if (isCameraActive) {
+                handleCancelCamera();
+            }
             const reader = new FileReader();
             reader.onload = (loadEvent) => {
                 setAvatar(loadEvent.target?.result as string);
@@ -90,7 +100,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, onSave, onClose }) =>
                 </div>
                 <form onSubmit={handleSubmit} className="p-6 space-y-6">
                     <div className="flex flex-col items-center space-y-4">
-                        <div className="w-32 h-32 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden relative">
+                        <div className="w-32 h-32 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden relative flex items-center justify-center">
                             {isCameraActive ? (
                                 <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
                             ) : (
@@ -107,7 +117,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, onSave, onClose }) =>
                                     <button type="button" onClick={handleCapture} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                         Capturer
                                     </button>
-                                    <button type="button" onClick={stopCamera} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400">
+                                    <button type="button" onClick={handleCancelCamera} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400">
                                         Annuler
                                     </button>
                                 </>
