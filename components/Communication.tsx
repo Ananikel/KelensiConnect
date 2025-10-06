@@ -28,8 +28,11 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
     const [isMemberTyping, setIsMemberTyping] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    // FIX: Replaced NodeJS.Timeout with a browser-compatible type for setTimeout's return value.
     const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // New state for selecting members for a custom group call
+    const [selectedMemberIds, setSelectedMemberIds] = useState<Set<number>>(new Set());
+    const [customCall, setCustomCall] = useState<{ type: 'audio' | 'video', members: Member[] } | null>(null);
 
 
     const scrollToBottom = () => {
@@ -172,6 +175,26 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
         setCallType(type);
     };
 
+    const handleMemberToggle = (memberId: number) => {
+        setSelectedId(null); // Clear active conversation when selecting members
+        setSelectedMemberIds(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(memberId)) {
+                newSet.delete(memberId);
+            } else {
+                newSet.add(memberId);
+            }
+            return newSet;
+        });
+    };
+
+    const handleStartCustomCall = (type: 'audio' | 'video') => {
+        const participants = members.filter(m => selectedMemberIds.has(m.id));
+        if (participants.length > 0) {
+            setCustomCall({ type, members: participants });
+        }
+    };
+
     const MessageAttachment: React.FC<{attachment: Attachment}> = ({attachment}) => {
         const isImage = attachment.type.startsWith('image/');
         
@@ -200,7 +223,7 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
         <>
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md flex h-[calc(100vh-8.5rem)] md:h-[calc(100vh-10rem)] overflow-hidden">
                 {/* Member List */}
-                <div className={`w-full md:w-1/3 border-r border-gray-200 dark:border-gray-700 flex-col ${selectedId !== null ? 'hidden md:flex' : 'flex'}`}>
+                <div className={`relative w-full md:w-1/3 border-r border-gray-200 dark:border-gray-700 flex-col ${selectedId !== null || selectedMemberIds.size > 0 ? 'hidden md:flex' : 'flex'}`}>
                     <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                          <div className="relative">
                             <input 
@@ -215,45 +238,83 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
                             </div>
                         </div>
                     </div>
-                    <div className="flex-1 overflow-y-auto">
+                    <div className="flex-1 overflow-y-auto pb-28"> {/* Add padding-bottom for the action bar */}
                         {/* Group Chat */}
-                        <button type="button" onClick={() => setSelectedId(0)} className={`flex items-center p-4 cursor-pointer w-full text-left hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700 ${selectedId === 0 ? 'bg-indigo-50 dark:bg-indigo-900/50' : ''}`}>
+                        <div onClick={() => { setSelectedId(0); setSelectedMemberIds(new Set()); }} className={`flex items-center p-4 cursor-pointer w-full text-left hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700 ${selectedId === 0 ? 'bg-indigo-50 dark:bg-indigo-900/50' : ''}`}>
                              <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center mr-4 text-indigo-600 dark:text-indigo-400"><UsersIcon /></div>
                              <div>
                                 <p className="font-semibold text-gray-800 dark:text-gray-200">Discussion Générale</p>
                                 <p className="text-sm text-gray-500 dark:text-gray-400">Canal pour toute l'association</p>
                             </div>
-                        </button>
+                        </div>
 
                         {filteredMembers.map(member => {
                             const lastMessage = conversations.get(member.id)?.slice(-1)[0];
                             return (
-                                <button
-                                    type="button"
-                                    key={member.id}
-                                    onClick={() => setSelectedId(member.id)}
-                                    className={`flex items-center p-4 cursor-pointer w-full text-left hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700 ${selectedId === member.id ? 'bg-indigo-50 dark:bg-indigo-900/50' : ''}`}
-                                >
-                                    <img src={member.avatar} alt={member.name} className="w-12 h-12 rounded-full object-cover mr-4"/>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-semibold text-gray-800 dark:text-gray-200 truncate">{member.name}</p>
-                                         {lastMessage ? (
-                                             <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                                                {lastMessage.senderId === 'admin' && 'Vous: '}{lastMessage.text || 'Pièce jointe'}
-                                             </p>
-                                        ) : (
-                                             <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{roles.find(r => r.id === member.roleId)?.name || 'Membre'}</p>
-                                        )}
-                                    </div>
-                                </button>
+                                <div key={member.id} className={`flex items-center p-4 w-full text-left transition-colors ${selectedId === member.id ? 'bg-indigo-50 dark:bg-indigo-900/50' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
+                                    <input
+                                        type="checkbox"
+                                        id={`member-select-${member.id}`}
+                                        checked={selectedMemberIds.has(member.id)}
+                                        onChange={() => handleMemberToggle(member.id)}
+                                        className="h-5 w-5 rounded border-gray-300 dark:border-gray-500 text-indigo-600 focus:ring-indigo-500 mr-4 flex-shrink-0"
+                                        aria-label={`Sélectionner ${member.name}`}
+                                    />
+                                    <label htmlFor={`member-select-${member.id}`} className="flex-1 min-w-0 cursor-pointer" onClick={(e) => { e.preventDefault(); handleMemberToggle(member.id); }}>
+                                         <div className="flex items-center" onClick={(e) => { e.stopPropagation(); setSelectedId(member.id); setSelectedMemberIds(new Set()); }}>
+                                            <img src={member.avatar} alt={member.name} className="w-12 h-12 rounded-full object-cover mr-4"/>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-semibold text-gray-800 dark:text-gray-200 truncate">{member.name}</p>
+                                                 {lastMessage ? (
+                                                     <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                                        {lastMessage.senderId === 'admin' && 'Vous: '}{lastMessage.text || 'Pièce jointe'}
+                                                     </p>
+                                                ) : (
+                                                     <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{roles.find(r => r.id === member.roleId)?.name || 'Membre'}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
                             );
                         })}
                     </div>
+                    {selectedMemberIds.size > 0 && (
+                        <div className="absolute bottom-0 left-0 right-0 p-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-[0_-2px_5px_rgba(0,0,0,0.1)] z-10 animate-slide-up">
+                            <div className="flex justify-between items-center">
+                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {selectedMemberIds.size} membre{selectedMemberIds.size > 1 ? 's' : ''} sélectionné{selectedMemberIds.size > 1 ? 's' : ''}
+                                </p>
+                                <button
+                                    onClick={() => setSelectedMemberIds(new Set())}
+                                    className="text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+                                >
+                                    Annuler
+                                </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 mt-3">
+                                <button
+                                    onClick={() => handleStartCustomCall('audio')}
+                                    className="flex items-center justify-center w-full px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                >
+                                    <PhoneIcon />
+                                    <span className="ml-2">Appel Audio</span>
+                                </button>
+                                <button
+                                    onClick={() => handleStartCustomCall('video')}
+                                    className="flex items-center justify-center w-full px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                >
+                                    <VideoIcon />
+                                    <span className="ml-2">Appel Vidéo</span>
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Chat Window */}
-                <div className={`w-full md:w-2/3 flex-col ${selectedId === null ? 'hidden md:flex' : 'flex'}`}>
-                    {selectedId !== null ? (
+                 <div className={`w-full md:w-2/3 flex-col ${(selectedId === null && selectedMemberIds.size === 0) ? 'hidden md:flex' : 'flex'}`}>
+                     {selectedId !== null ? (
                         <>
                             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 shadow-sm">
                                 <div className="flex items-center min-w-0">
@@ -342,8 +403,20 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
                                 </form>
                             </div>
                         </>
+                    ) : selectedMemberIds.size > 0 ? (
+                        <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400 text-center p-4">
+                            <div>
+                                <div className="mx-auto h-12 w-12 text-gray-400"><UsersIcon /></div>
+                                <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-gray-200">
+                                    Prêt pour un appel de groupe
+                                </h3>
+                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                    Démarrez un appel audio ou vidéo avec les {selectedMemberIds.size} membres sélectionnés.
+                                </p>
+                            </div>
+                        </div>
                     ) : (
-                        <div className="flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400 text-center p-4">
+                        <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400 text-center p-4">
                             <div>
                                 <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                     <path vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -355,7 +428,7 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
                     )}
                 </div>
             </div>
-            {callType && selectedId !== null && (
+            {(callType && selectedId !== null) && (
                 <VideoCallModal 
                     isGroupCall={selectedId === 0}
                     callType={callType}
@@ -364,6 +437,27 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
                     onClose={() => setCallType(null)}
                 />
             )}
+            {customCall && (
+                <VideoCallModal
+                    isGroupCall={true}
+                    callType={customCall.type}
+                    participants={customCall.members}
+                    allMembers={members}
+                    onClose={() => {
+                        setCustomCall(null);
+                        setSelectedMemberIds(new Set());
+                    }}
+                />
+            )}
+             <style>{`
+                @keyframes slide-up {
+                    from { transform: translateY(100%); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+                .animate-slide-up {
+                    animation: slide-up 0.3s ease-out forwards;
+                }
+            `}</style>
         </>
     );
 };

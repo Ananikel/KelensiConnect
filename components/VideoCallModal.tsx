@@ -10,11 +10,12 @@ interface VideoCallModalProps {
     isGroupCall: boolean;
     callType: 'audio' | 'video';
     targetMember?: Member;
-    allMembers?: Member[];
+    allMembers: Member[];
+    participants?: Member[]; // For custom group calls
     onClose: () => void;
 }
 
-const VideoCallModal: React.FC<VideoCallModalProps> = ({ isGroupCall, callType, targetMember, allMembers, onClose }) => {
+const VideoCallModal: React.FC<VideoCallModalProps> = ({ isGroupCall, callType, targetMember, allMembers, participants, onClose }) => {
     const [currentCallMode, setCurrentCallMode] = useState<'audio' | 'video'>(callType);
     const [isMicOn, setMicOn] = useState(true);
     const [isCameraOn, setCameraOn] = useState(callType === 'video');
@@ -139,8 +140,13 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({ isGroupCall, callType, 
         stopStream();
         onClose();
     };
-
-    const callTitle = isGroupCall ? `Appel de Groupe ${currentCallMode === 'video' ? 'Vidéo' : 'Audio'}` : `${currentCallMode === 'video' ? 'Appel Vidéo' : 'Appel Audio'} avec ${targetMember?.name}`;
+    
+    const callParticipants = isGroupCall ? (participants || allMembers) : [];
+    const callTitle = participants
+        ? `Appel de groupe (${participants.length + 1})`
+        : isGroupCall 
+        ? `Appel de Groupe ${currentCallMode === 'video' ? 'Vidéo' : 'Audio'}` 
+        : `${currentCallMode === 'video' ? 'Appel Vidéo' : 'Appel Audio'} avec ${targetMember?.name}`;
 
     return (
         <div className="fixed inset-0 bg-gray-900 flex flex-col items-center justify-center z-50 text-white">
@@ -164,7 +170,7 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({ isGroupCall, callType, 
                                 <p className="text-xs text-center text-white truncate">Vous</p>
                             </div>
                          </div>
-                         {allMembers?.slice(0, 11).map(member => (
+                         {callParticipants.slice(0, 11).map(member => (
                              <div key={member.id} className="bg-gray-800 rounded-lg flex flex-col items-center justify-center aspect-w-1 aspect-h-1 p-2 relative overflow-hidden">
                                  <img src={member.avatar} alt={member.name} className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover" />
                                  <div className="absolute bottom-0 left-0 right-0 p-1 bg-black bg-opacity-50">
