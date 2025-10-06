@@ -6,12 +6,13 @@ import Members from './components/Members';
 import Finances from './components/Finances';
 import Communication from './components/Communication';
 import Events from './components/Events';
+import Galerie from './components/Galerie';
 import Settings from './components/Settings';
 import Header from './components/Header';
 import Login from './components/Login';
 import NotificationCenter from './components/NotificationCenter';
-import { Page, Member, Contribution, UserProfile, ChatMessage, AppEvent, Notification } from './types';
-import { MOCK_MEMBERS, MOCK_CONTRIBUTIONS, MOCK_MESSAGES, MOCK_EVENTS } from './constants';
+import { Page, Member, Contribution, UserProfile, ChatMessage, AppEvent, Notification, Photo } from './types';
+import { MOCK_MEMBERS, MOCK_CONTRIBUTIONS, MOCK_MESSAGES, MOCK_EVENTS, MOCK_PHOTOS } from './constants';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('Dashboard');
@@ -19,6 +20,7 @@ const App: React.FC = () => {
   const [contributions, setContributions] = useState<Contribution[]>(MOCK_CONTRIBUTIONS);
   const [messages, setMessages] = useState<ChatMessage[]>(MOCK_MESSAGES);
   const [events, setEvents] = useState<AppEvent[]>(MOCK_EVENTS);
+  const [photos, setPhotos] = useState<Photo[]>(MOCK_PHOTOS);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -161,6 +163,8 @@ const App: React.FC = () => {
         return <Communication members={members} messages={messages} setMessages={setMessages} />;
        case 'Événements':
         return <Events events={events} setEvents={setEvents} members={members} />;
+       case 'Galerie':
+        return <Galerie photos={photos} setPhotos={setPhotos} />;
        case 'Paramètres':
         return <Settings />;
       default:
@@ -174,6 +178,7 @@ const App: React.FC = () => {
     Finances: 'Suivi Financier',
     Communication: 'Messagerie',
     Événements: 'Gestion des Événements',
+    Galerie: 'Galerie de Photos',
     Paramètres: 'Paramètres',
   };
 

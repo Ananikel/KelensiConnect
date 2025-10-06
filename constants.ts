@@ -1,4 +1,4 @@
-import { Member, Contribution, ChatMessage, AppEvent } from './types';
+import { Member, Contribution, ChatMessage, AppEvent, Photo } from './types';
 
 const getDescendance = (name: string): string => {
     const parts = name.split(' ');
@@ -117,4 +117,16 @@ export const MOCK_EVENTS: AppEvent[] = [
              { memberId: 20, status: 'Attending' },
         ]
     }
+];
+
+export const MOCK_PHOTOS: Photo[] = [
+    { id: 1, url: 'https://picsum.photos/seed/kelensi1/800/600', title: 'Assemblée Générale 2024', description: 'Photo de groupe lors de l\'AG annuelle de Septembre.', uploadDate: '2024-09-15T14:00:00Z' },
+    { id: 2, url: 'https://picsum.photos/seed/kelensi2/800/600', title: 'Journée de Salubrité', description: 'Membres nettoyant le quartier de Bè.', uploadDate: '2024-08-20T10:30:00Z' },
+    { id: 3, url: 'https://picsum.photos/seed/kelensi3/800/600', title: 'Collecte de fonds', description: 'Remise de fournitures scolaires.', uploadDate: '2024-06-10T12:00:00Z' },
+    { id: 4, url: 'https://picsum.photos/seed/kelensi4/800/600', title: 'Réunion du bureau', description: 'Planification des activités du prochain trimestre.', uploadDate: '2024-05-05T18:00:00Z' },
+    { id: 5, url: 'https://picsum.photos/seed/kelensi5/800/600', title: 'Formation des membres', description: 'Atelier sur la gestion de projet.', uploadDate: '2024-04-12T09:00:00Z' },
+    { id: 6, url: 'https://picsum.photos/seed/kelensi6/800/600', title: 'Fête de l\'indépendance', description: 'Célébration en groupe.', uploadDate: '2024-04-27T19:00:00Z' },
+    { id: 7, url: 'https://picsum.photos/seed/kelensi7/800/600', title: 'Activité sportive', description: 'Match de football amical entre membres.', uploadDate: '2024-03-18T16:00:00Z' },
+    { id: 8, url: 'https://picsum.photos/seed/kelensi8/800/600', title: 'Visite caritative', description: 'Visite à l\'orphelinat "La Providence".', uploadDate: '2024-02-22T11:00:00Z' },
+    { id: 9, url: 'https://picsum.photos/seed/kelensi9/800/600', title: 'Fête de Fin d\'Année 2023', description: 'Célébration à la plage de Lomé.', uploadDate: '2023-12-22T20:00:00Z' },
 ];

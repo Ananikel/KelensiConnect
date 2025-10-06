@@ -1,4 +1,4 @@
-export type Page = 'Dashboard' | 'Membres' | 'Finances' | 'Communication' | 'Événements' | 'Paramètres';
+export type Page = 'Dashboard' | 'Membres' | 'Finances' | 'Communication' | 'Événements' | 'Galerie' | 'Paramètres';
 
 export interface Member {
   id: number;
@@ -66,4 +66,12 @@ export interface Notification {
   type: 'info' | 'success' | 'warning' | 'error';
   title: string;
   message: string;
+}
+
+export interface Photo {
+  id: number;
+  url: string; // data URL or server URL
+  title: string;
+  description: string;
+  uploadDate: string;
 }
