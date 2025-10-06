@@ -112,3 +112,10 @@ export interface DocArticle {
   lastModified: string;
   attachments?: Attachment[];
 }
+
+export interface SearchResults {
+    members: Member[];
+    events: AppEvent[];
+    transactions: Contribution[];
+    documentation: DocArticle[];
+}

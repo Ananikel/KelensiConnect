@@ -15,7 +15,7 @@ import Login from './components/Login';
 import NotificationCenter from './components/NotificationCenter';
 import Cotisations from './components/Cotisations';
 // FIX: Imported the 'Photo' type to resolve the 'Cannot find name' error.
-import { Page, Member, Contribution, UserProfile, ChatMessage, AppEvent, Notification, NotificationPreferences, Role, Permission, Photo, ContributionType, DocArticle } from './types';
+import { Page, Member, Contribution, UserProfile, ChatMessage, AppEvent, Notification, NotificationPreferences, Role, Permission, Photo, ContributionType, DocArticle, SearchResults } from './types';
 import { MOCK_MEMBERS, MOCK_CONTRIBUTIONS, MOCK_MESSAGES, MOCK_EVENTS, MOCK_PHOTOS, MOCK_ROLES, MOCK_PERMISSIONS, MOCK_CONTRIBUTION_TYPES, MOCK_DOC_ARTICLES } from './constants';
 import ProfileModal from './components/ProfileModal';
 
@@ -56,6 +56,14 @@ const App: React.FC = () => {
   // Lifted state for Profile Modal
   const [isProfileModalOpen, setProfileModalOpen] = useState(false);
 
+  // Global Search State
+  const [globalSearchTerm, setGlobalSearchTerm] = useState('');
+  const [globalSearchResults, setGlobalSearchResults] = useState<SearchResults>({ members: [], events: [], transactions: [], documentation: [] });
+  const [isGlobalSearchFocused, setIsGlobalSearchFocused] = useState(false);
+  
+  // Lifted state for documentation
+  const [selectedDocArticleId, setSelectedDocArticleId] = useState<string | null>(MOCK_DOC_ARTICLES.length > 0 ? MOCK_DOC_ARTICLES[0].id : null);
+
   useEffect(() => {
     if (theme === 'dark') {
         document.documentElement.classList.add('dark');
@@ -69,6 +77,48 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('kelensi-notif-prefs', JSON.stringify(notificationPreferences));
   }, [notificationPreferences]);
+
+  // Debounced global search
+  useEffect(() => {
+    if (globalSearchTerm.trim().length < 2) {
+        setGlobalSearchResults({ members: [], events: [], transactions: [], documentation: [] });
+        return;
+    }
+
+    const handler = setTimeout(() => {
+        const term = globalSearchTerm.toLowerCase();
+        const results: SearchResults = {
+            members: members.filter(m => m.name.toLowerCase().includes(term) || m.email.toLowerCase().includes(term)).slice(0, 3),
+            events: events.filter(e => e.title.toLowerCase().includes(term) || e.description.toLowerCase().includes(term)).slice(0, 3),
+            transactions: contributions.filter(c => c.memberName.toLowerCase().includes(term)).slice(0, 3),
+            documentation: docArticles.filter(a => a.title.toLowerCase().includes(term) || a.content.toLowerCase().includes(term)).slice(0, 3)
+        };
+        setGlobalSearchResults(results);
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(handler);
+  }, [globalSearchTerm, members, events, contributions, docArticles]);
+
+  const handleSearchResultClick = (item: Member | AppEvent | Contribution | DocArticle, type: keyof SearchResults) => {
+    setGlobalSearchTerm('');
+    setIsGlobalSearchFocused(false);
+    
+    switch(type) {
+        case 'members':
+            setCurrentPage('Membres');
+            break;
+        case 'events':
+            setCurrentPage('Événements');
+            break;
+        case 'transactions':
+            setCurrentPage('Finances');
+            break;
+        case 'documentation':
+            setCurrentPage('Documentation');
+            setSelectedDocArticleId((item as DocArticle).id);
+            break;
+    }
+  };
 
   const toggleTheme = () => {
       setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
@@ -307,6 +357,8 @@ const App: React.FC = () => {
                     articles={docArticles}
                     onSaveArticle={handleSaveDocArticle}
                     onDeleteArticle={handleDeleteDocArticle}
+                    selectedArticleId={selectedDocArticleId}
+                    setSelectedArticleId={setSelectedDocArticleId}
                />;
        case 'Paramètres':
         return <Settings 
@@ -368,6 +420,12 @@ const App: React.FC = () => {
           toggleTheme={toggleTheme}
           setSidebarOpen={setSidebarOpen}
           setProfileModalOpen={setProfileModalOpen}
+          globalSearchTerm={globalSearchTerm}
+          setGlobalSearchTerm={setGlobalSearchTerm}
+          globalSearchResults={globalSearchResults}
+          onSearchResultClick={handleSearchResultClick}
+          isGlobalSearchFocused={isGlobalSearchFocused}
+          setIsGlobalSearchFocused={setIsGlobalSearchFocused}
         />
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-800 p-4 sm:p-6 md:p-8">
           {renderPage()}

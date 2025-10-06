@@ -14,6 +14,8 @@ interface DocumentationProps {
     articles: DocArticle[];
     onSaveArticle: (article: DocArticle) => void;
     onDeleteArticle: (articleId: string) => void;
+    selectedArticleId: string | null;
+    setSelectedArticleId: (id: string | null) => void;
 }
 
 interface ArticleModalProps {
@@ -223,10 +225,9 @@ const DeleteModal: React.FC<DeleteModalProps> = ({ article, onClose, onConfirm }
     </div>
 );
 
-const Documentation: React.FC<DocumentationProps> = ({ articles, onSaveArticle, onDeleteArticle }) => {
+const Documentation: React.FC<DocumentationProps> = ({ articles, onSaveArticle, onDeleteArticle, selectedArticleId, setSelectedArticleId }) => {
     const sortedArticles = useMemo(() => [...articles].sort((a,b) => a.title.localeCompare(b.title)), [articles]);
     
-    const [selectedArticleId, setSelectedArticleId] = useState<string | null>(sortedArticles.length > 0 ? sortedArticles[0].id : null);
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setModalOpen] = useState(false);
     const [articleToEdit, setArticleToEdit] = useState<DocArticle | null>(null);
@@ -251,12 +252,12 @@ const Documentation: React.FC<DocumentationProps> = ({ articles, onSaveArticle, 
     
     const selectedArticle = useMemo(() => {
         const found = articles.find(a => a.id === selectedArticleId);
-        if (found && !filteredArticles.includes(found)) {
+        if (found && !filteredArticles.some(fa => fa.id === found.id)) {
             setSelectedArticleId(null);
             return undefined;
         }
         return found;
-    }, [articles, selectedArticleId, filteredArticles]);
+    }, [articles, selectedArticleId, filteredArticles, setSelectedArticleId]);
     
     const handleOpenCreateModal = () => {
         setArticleToEdit(null);

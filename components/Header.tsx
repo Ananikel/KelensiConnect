@@ -2,11 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import SearchIcon from './icons/SearchIcon';
 import ChevronDownIcon from './icons/ChevronDownIcon';
 import LogoutIcon from './icons/LogoutIcon';
-import { UserProfile } from '../types';
+import { UserProfile, SearchResults, Member, AppEvent, Contribution, DocArticle } from '../types';
 import UserIcon from './icons/UserIcon';
 import SunIcon from './icons/SunIcon';
 import MoonIcon from './icons/MoonIcon';
 import MenuIcon from './icons/MenuIcon';
+import GlobalSearchResults from './GlobalSearchResults';
 
 interface HeaderProps {
     title: string;
@@ -16,11 +17,21 @@ interface HeaderProps {
     toggleTheme: () => void;
     setSidebarOpen: (isOpen: boolean) => void;
     setProfileModalOpen: (isOpen: boolean) => void;
+    globalSearchTerm: string;
+    setGlobalSearchTerm: (term: string) => void;
+    globalSearchResults: SearchResults;
+    onSearchResultClick: (item: Member | AppEvent | Contribution | DocArticle, type: keyof SearchResults) => void;
+    isGlobalSearchFocused: boolean;
+    setIsGlobalSearchFocused: (isFocused: boolean) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ title, userProfile, onLogout, theme, toggleTheme, setSidebarOpen, setProfileModalOpen }) => {
+const Header: React.FC<HeaderProps> = ({ 
+    title, userProfile, onLogout, theme, toggleTheme, setSidebarOpen, setProfileModalOpen,
+    globalSearchTerm, setGlobalSearchTerm, globalSearchResults, onSearchResultClick, isGlobalSearchFocused, setIsGlobalSearchFocused
+}) => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -31,6 +42,16 @@ const Header: React.FC<HeaderProps> = ({ title, userProfile, onLogout, theme, to
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setIsGlobalSearchFocused(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [setIsGlobalSearchFocused]);
 
 
   return (
@@ -47,15 +68,24 @@ const Header: React.FC<HeaderProps> = ({ title, userProfile, onLogout, theme, to
             <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 dark:text-gray-200 truncate">{title}</h2>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
-            <div className="relative hidden md:block">
+            <div className="relative hidden md:block" ref={searchContainerRef}>
               <input 
                 type="text" 
                 placeholder="Rechercher..." 
+                value={globalSearchTerm}
+                onChange={(e) => setGlobalSearchTerm(e.target.value)}
+                onFocus={() => setIsGlobalSearchFocused(true)}
                 className="w-48 lg:w-64 pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-200 dark:placeholder-gray-400"
               />
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <SearchIcon />
               </div>
+               {isGlobalSearchFocused && globalSearchTerm.length >= 2 && (
+                <GlobalSearchResults 
+                    results={globalSearchResults}
+                    onResultClick={onSearchResultClick}
+                />
+              )}
             </div>
             
             <button
