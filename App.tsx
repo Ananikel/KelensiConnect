@@ -55,6 +55,30 @@ const App: React.FC = () => {
 
   const [userProfile, setUserProfile] = useState<UserProfile>(getInitialProfile);
   
+  useEffect(() => {
+    const handleResize = () => {
+        // Close sidebar automatically on window resize to desktop
+        if (window.innerWidth >= 768 && isSidebarOpen) {
+            setSidebarOpen(false);
+        }
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Prevent body from scrolling when mobile sidebar is open
+    if (isSidebarOpen && window.innerWidth < 768) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = 'auto';
+    }
+
+    // Cleanup function to restore scroll on component unmount
+    return () => {
+        window.removeEventListener('resize', handleResize);
+        document.body.style.overflow = 'auto';
+    };
+  }, [isSidebarOpen]);
+
   const addNotification = (notification: Omit<Notification, 'id'>) => {
     const newNotification = { ...notification, id: Date.now() };
     setNotifications(prev => [...prev, newNotification]);
