@@ -1,19 +1,21 @@
-
 import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import Members from './components/Members';
 import Finances from './components/Finances';
 import Communication from './components/Communication';
+import Events from './components/Events';
 import Header from './components/Header';
 import Login from './components/Login';
-import { Page, Member, Contribution, UserProfile } from './types';
-import { MOCK_MEMBERS, MOCK_CONTRIBUTIONS } from './constants';
+import { Page, Member, Contribution, UserProfile, ChatMessage, AppEvent } from './types';
+import { MOCK_MEMBERS, MOCK_CONTRIBUTIONS, MOCK_MESSAGES, MOCK_EVENTS } from './constants';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('Dashboard');
   const [members, setMembers] = useState<Member[]>(MOCK_MEMBERS);
   const [contributions, setContributions] = useState<Contribution[]>(MOCK_CONTRIBUTIONS);
+  const [messages, setMessages] = useState<ChatMessage[]>(MOCK_MESSAGES);
+  const [events, setEvents] = useState<AppEvent[]>(MOCK_EVENTS);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const getInitialProfile = (): UserProfile => {
@@ -55,7 +57,9 @@ const App: React.FC = () => {
       case 'Finances':
         return <Finances members={members} contributions={contributions} setContributions={setContributions} />;
       case 'Communication':
-        return <Communication />;
+        return <Communication members={members} messages={messages} setMessages={setMessages} />;
+       case 'Événements':
+        return <Events events={events} setEvents={setEvents} />;
       default:
         return <Dashboard members={members} contributions={contributions} />;
     }
@@ -65,7 +69,8 @@ const App: React.FC = () => {
     Dashboard: 'Tableau de Bord',
     Membres: 'Gestion des Membres',
     Finances: 'Suivi Financier',
-    Communication: 'Communication Interne',
+    Communication: 'Messagerie',
+    Événements: 'Gestion des Événements',
   };
 
   if (!isAuthenticated) {

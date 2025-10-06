@@ -1,5 +1,4 @@
-
-export type Page = 'Dashboard' | 'Membres' | 'Finances' | 'Communication';
+export type Page = 'Dashboard' | 'Membres' | 'Finances' | 'Communication' | 'Événements';
 
 export interface Member {
   id: number;
@@ -24,12 +23,23 @@ export interface Contribution {
   status: 'Payé' | 'En attente';
 }
 
-export interface Announcement {
-    id: number;
-    title: string;
-    content: string;
-    date: string;
+export interface ChatMessage {
+  id: number;
+  senderId: number | 'admin';
+  receiverId: number | 'admin';
+  text: string;
+  timestamp: string;
 }
+
+export interface AppEvent {
+  id: number;
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  description: string;
+}
+
 
 export interface UserProfile {
   name: string;

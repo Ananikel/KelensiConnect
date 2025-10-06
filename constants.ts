@@ -1,4 +1,4 @@
-import { Member, Contribution, Announcement } from './types';
+import { Member, Contribution, ChatMessage, AppEvent } from './types';
 
 const getDescendance = (name: string): string => {
     const parts = name.split(' ');
@@ -46,8 +46,49 @@ export const MOCK_CONTRIBUTIONS: Contribution[] = [
   { id: 8, memberId: 15, memberName: 'Amavi Isidore KELENSI', amount: 25000, date: '2024-03-18', type: 'Cotisation', status: 'En attente' },
 ];
 
-export const MOCK_ANNOUNCEMENTS: Announcement[] = [
-    { id: 1, title: 'Assemblée Générale Annuelle', content: 'Notre assemblée générale annuelle aura lieu le 30 août. Votre présence est cruciale.', date: '2024-07-15' },
-    { id: 2, title: 'Événement Caritatif du Weekend', content: 'Rejoignez-nous ce weekend pour notre événement caritatif. Tous les fonds seront reversés à une bonne cause.', date: '2024-07-10' },
-    { id: 3, title: 'Appel à Bénévoles', content: 'Nous recherchons des bénévoles pour notre prochain événement communautaire. Inscrivez-vous avant la fin du mois.', date: '2024-06-28' },
+export const MOCK_MESSAGES: ChatMessage[] = [
+    { id: 1, senderId: 1, receiverId: 'admin', text: 'Bonjour, j\'ai une question sur ma cotisation.', timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString() },
+    { id: 2, senderId: 'admin', receiverId: 1, text: 'Bonjour Kokoè, bien sûr. Quelle est votre question ?', timestamp: new Date(Date.now() - 1000 * 60 * 14).toISOString() },
+    { id: 3, senderId: 1, receiverId: 'admin', text: 'Je voudrais savoir si mon dernier paiement a bien été enregistré.', timestamp: new Date(Date.now() - 1000 * 60 * 13).toISOString() },
+    { id: 4, senderId: 'admin', receiverId: 1, text: 'Je vérifie cela tout de suite.', timestamp: new Date(Date.now() - 1000 * 60 * 13).toISOString() },
+    
+    { id: 5, senderId: 5, receiverId: 'admin', text: 'Salut ! Juste pour dire que j\'ai adoré le dernier événement.', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString() },
+    { id: 6, senderId: 'admin', receiverId: 5, text: 'Merci beaucoup ! Nous sommes ravis que ça vous ait plu.', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2 + 1000 * 30).toISOString() },
+
+    { id: 7, senderId: 12, receiverId: 'admin', text: 'Pourrait-on avoir le compte rendu de la dernière réunion ?', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString() },
+];
+
+export const MOCK_EVENTS: AppEvent[] = [
+    {
+        id: 1,
+        title: 'Assemblée Générale Annuelle',
+        date: '2024-09-15',
+        time: '10:00',
+        location: 'Salle Polyvalente, Lomé',
+        description: 'Présentation du bilan annuel, élection du nouveau bureau et discussion des projets futurs.'
+    },
+    {
+        id: 2,
+        title: 'Journée de Salubrité',
+        date: '2024-08-20',
+        time: '08:00',
+        location: 'Quartier Bè',
+        description: 'Opération de nettoyage et de sensibilisation à l\'environnement dans le quartier.'
+    },
+    {
+        id: 3,
+        title: 'Fête de Fin d\'Année',
+        date: '2024-12-22',
+        time: '19:00',
+        location: 'Plage de Lomé',
+        description: 'Célébration de fin d\'année avec tous les membres et leurs familles. Musique, repas et animations.'
+    },
+     {
+        id: 4,
+        title: 'Collecte de fonds pour la rentrée',
+        date: '2024-06-10',
+        time: '09:00',
+        location: 'Maison des Jeunes',
+        description: 'Événement caritatif pour collecter des fournitures scolaires pour les enfants défavorisés.'
+    }
 ];
