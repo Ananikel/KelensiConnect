@@ -121,9 +121,9 @@ const Live: React.FC = () => {
                 callbacks: {
                     onopen: () => {
                         setSessionState('connected');
-                        // FIX: Cast window to any to access webkitAudioContext, which is a vendor-prefixed property for older browsers and may not be in the default TS Window type.
+                        // FIX: Cast window to any to access webkitAudioContext, a vendor-prefixed property for older browsers that may not be in the default TS Window type.
                         inputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-                        // FIX: Cast window to any to access webkitAudioContext, which is a vendor-prefixed property for older browsers and may not be in the default TS Window type.
+                        // FIX: Cast window to any to access webkitAudioContext, a vendor-prefixed property for older browsers that may not be in the default TS Window type.
                         outputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
                         
                         const source = inputAudioContextRef.current.createMediaStreamSource(stream);
