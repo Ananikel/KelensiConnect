@@ -1,0 +1,7 @@
+{
+  "name": "KelensiConnect",
+  "description": "KelensiConnect is a web application designed to simplify and modernize the daily management of an association. The main objective is to provide administrators with a centralized, intuitive, and efficient tool to track members, manage financial contributions, and communicate with the community.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
