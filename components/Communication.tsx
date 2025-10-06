@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Member, ChatMessage, Attachment, Role } from '../types';
 import SearchIcon from './icons/SearchIcon';
@@ -11,6 +12,7 @@ import PhoneIcon from './icons/PhoneIcon';
 import VideoCallModal from './VideoCallModal';
 import ArrowLeftIcon from './icons/ArrowLeftIcon';
 import ReadReceiptIcon from './icons/ReadReceiptIcon';
+import ChatBubbleIcon from './icons/ChatBubbleIcon';
 
 interface CommunicationProps {
     members: Member[];
@@ -174,6 +176,11 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
         if (selectedId === null) return;
         setCallType(type);
     };
+    
+    const handleStartChat = (memberId: number) => {
+        setSelectedId(memberId);
+        setSelectedMemberIds(new Set()); // Clear group selection
+    };
 
     const handleMemberToggle = (memberId: number) => {
         setSelectedId(null); // Clear active conversation when selecting members
@@ -240,7 +247,7 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
                     </div>
                     <div className="flex-1 overflow-y-auto pb-28"> {/* Add padding-bottom for the action bar */}
                         {/* Group Chat */}
-                        <div onClick={() => { setSelectedId(0); setSelectedMemberIds(new Set()); }} className={`flex items-center p-4 cursor-pointer w-full text-left hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700 ${selectedId === 0 ? 'bg-indigo-50 dark:bg-indigo-900/50' : ''}`}>
+                        <div onClick={() => { handleStartChat(0); }} className={`flex items-center p-4 cursor-pointer w-full text-left hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700 ${selectedId === 0 ? 'bg-indigo-50 dark:bg-indigo-900/50' : ''}`}>
                              <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center mr-4 text-indigo-600 dark:text-indigo-400"><UsersIcon /></div>
                              <div>
                                 <p className="font-semibold text-gray-800 dark:text-gray-200">Discussion Générale</p>
@@ -250,31 +257,41 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
 
                         {filteredMembers.map(member => {
                             const lastMessage = conversations.get(member.id)?.slice(-1)[0];
+                            const isSelectedForGroup = selectedMemberIds.has(member.id);
+                            const isSelectedForChat = selectedId === member.id;
                             return (
-                                <div key={member.id} className={`flex items-center p-4 w-full text-left transition-colors ${selectedId === member.id ? 'bg-indigo-50 dark:bg-indigo-900/50' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
-                                    <input
-                                        type="checkbox"
-                                        id={`member-select-${member.id}`}
-                                        checked={selectedMemberIds.has(member.id)}
-                                        onChange={() => handleMemberToggle(member.id)}
-                                        className="h-5 w-5 rounded border-gray-300 dark:border-gray-500 text-indigo-600 focus:ring-indigo-500 mr-4 flex-shrink-0"
-                                        aria-label={`Sélectionner ${member.name}`}
-                                    />
-                                    <label htmlFor={`member-select-${member.id}`} className="flex-1 min-w-0 cursor-pointer" onClick={(e) => { e.preventDefault(); handleMemberToggle(member.id); }}>
-                                         <div className="flex items-center" onClick={(e) => { e.stopPropagation(); setSelectedId(member.id); setSelectedMemberIds(new Set()); }}>
-                                            <img src={member.avatar} alt={member.name} className="w-12 h-12 rounded-full object-cover mr-4"/>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-semibold text-gray-800 dark:text-gray-200 truncate">{member.name}</p>
-                                                 {lastMessage ? (
-                                                     <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                                                        {lastMessage.senderId === 'admin' && 'Vous: '}{lastMessage.text || 'Pièce jointe'}
-                                                     </p>
-                                                ) : (
-                                                     <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{roles.find(r => r.id === member.roleId)?.name || 'Membre'}</p>
-                                                )}
-                                            </div>
+                                <div 
+                                    key={member.id} 
+                                    onClick={() => handleMemberToggle(member.id)}
+                                    className={`flex items-center p-4 w-full text-left cursor-pointer transition-colors ${isSelectedForGroup || isSelectedForChat ? 'bg-indigo-50 dark:bg-indigo-900/50' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                                >
+                                    <div className="flex items-center flex-1 min-w-0">
+                                        <input
+                                            type="checkbox"
+                                            readOnly
+                                            checked={isSelectedForGroup}
+                                            className="h-5 w-5 rounded border-gray-300 dark:border-gray-500 text-indigo-600 focus:ring-indigo-500 mr-4 flex-shrink-0 pointer-events-none"
+                                            aria-label={`Sélectionner ${member.name} pour un appel de groupe`}
+                                        />
+                                        <img src={member.avatar} alt={member.name} className="w-12 h-12 rounded-full object-cover mr-4"/>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-semibold text-gray-800 dark:text-gray-200 truncate">{member.name}</p>
+                                            {lastMessage ? (
+                                                <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                                    {lastMessage.senderId === 'admin' && 'Vous: '}{lastMessage.text || 'Pièce jointe'}
+                                                </p>
+                                            ) : (
+                                                <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{roles.find(r => r.id === member.roleId)?.name || 'Membre'}</p>
+                                            )}
                                         </div>
-                                    </label>
+                                    </div>
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); handleStartChat(member.id); }} 
+                                        className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                        aria-label={`Démarrer une discussion avec ${member.name}`}
+                                    >
+                                        <ChatBubbleIcon />
+                                    </button>
                                 </div>
                             );
                         })}
