@@ -43,36 +43,31 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({ isGroupCall, callType, 
             if (!isRinging || audioContext.state === 'closed') return;
 
             const now = audioContext.currentTime;
+            const ringDuration = 1.5; // A longer, more classic ring duration
             
-            // First tone
-            const osc1 = audioContext.createOscillator();
-            const gain1 = audioContext.createGain();
-            osc1.type = 'sine';
-            osc1.frequency.setValueAtTime(440, now); // A4 note
-            gain1.gain.setValueAtTime(0, now);
-            gain1.gain.linearRampToValueAtTime(0.5, now + 0.05);
-            gain1.gain.linearRampToValueAtTime(0, now + 0.4);
-            osc1.connect(gain1);
-            gain1.connect(audioContext.destination);
-            osc1.start(now);
-            osc1.stop(now + 0.4);
+            // Create two oscillators for a richer, more standard phone ring sound
+            const createTone = (freq: number) => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now);
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.2, now + 0.05); // Fade in to prevent clicking
+                gain.gain.setValueAtTime(0.2, now + ringDuration - 0.05);
+                gain.gain.linearRampToValueAtTime(0, now + ringDuration); // Fade out
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.start(now);
+                osc.stop(now + ringDuration);
+            }
 
-            // Second tone
-            const osc2 = audioContext.createOscillator();
-            const gain2 = audioContext.createGain();
-            osc2.type = 'sine';
-            osc2.frequency.setValueAtTime(480, now + 0.5);
-            gain2.gain.setValueAtTime(0, now + 0.5);
-            gain2.gain.linearRampToValueAtTime(0.5, now + 0.55);
-            gain2.gain.linearRampToValueAtTime(0, now + 0.9);
-            osc2.connect(gain2);
-            gain2.connect(audioContext.destination);
-            osc2.start(now + 0.5);
-            osc2.stop(now + 0.9);
+            createTone(440); // A4 note
+            createTone(480); // Slightly sharper note to create a richer sound
         };
         
+        // Start ringing immediately and then repeat
         playRingSequence();
-        ringInterval = setInterval(playRingSequence, 2000); // Repeat every 2 seconds
+        ringInterval = setInterval(playRingSequence, 4000); // Repeat every 4 seconds (1.5s ring, 2.5s silence)
 
         return () => {
             isRinging = false;
@@ -80,7 +75,7 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({ isGroupCall, callType, 
                 clearInterval(ringInterval);
             }
             if (audioContext.state !== 'closed') {
-                audioContext.close();
+                audioContext.close().catch(console.error);
             }
         };
     }, []); // Run only once on mount
@@ -141,18 +136,35 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({ isGroupCall, callType, 
 
     return (
         <div className="fixed inset-0 bg-gray-900 flex flex-col items-center justify-center z-50 text-white">
-            {/* Remote Video Area */}
             <div className="relative w-full h-full flex items-center justify-center">
                  <div className="absolute top-5 left-5 text-lg z-10">
                     <p className="font-semibold">{callTitle}</p>
                     <p className="text-sm text-gray-300">En cours...</p>
                 </div>
                 {isGroupCall ? (
-                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4 w-full h-full overflow-y-auto pt-20">
-                         {allMembers?.slice(0, 12).map(member => ( // Show up to 12 members as placeholders
-                             <div key={member.id} className="bg-gray-800 rounded-lg flex flex-col items-center justify-center aspect-w-1 aspect-h-1 p-2">
+                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-4 w-full h-full overflow-y-auto pt-20">
+                         {/* Local User Tile */}
+                         <div className="bg-black rounded-lg flex items-center justify-center aspect-w-1 aspect-h-1 relative overflow-hidden">
+                            {callType === 'video' && (
+                                <video ref={localVideoRef} autoPlay playsInline muted className={`w-full h-full object-cover ${!isCameraOn ? 'hidden' : ''}`}></video>
+                            )}
+                            {(!isCameraOn || callType === 'audio') && (
+                                 <div className="w-full h-full flex flex-col items-center justify-center bg-gray-800">
+                                    <img src={`https://ui-avatars.com/api/?name=Vous&background=6366f1&color=fff`} alt="Vous" className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover" />
+                                </div>
+                            )}
+                            <div className="absolute bottom-0 left-0 right-0 p-1 bg-black bg-opacity-50">
+                                <p className="text-xs text-center text-white truncate">Vous</p>
+                            </div>
+                         </div>
+
+                         {/* Remote Members Tiles */}
+                         {allMembers?.slice(0, 11).map(member => (
+                             <div key={member.id} className="bg-gray-800 rounded-lg flex flex-col items-center justify-center aspect-w-1 aspect-h-1 p-2 relative overflow-hidden">
                                  <img src={member.avatar} alt={member.name} className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover" />
-                                 <p className="mt-2 text-sm text-center truncate w-full">{member.name}</p>
+                                 <div className="absolute bottom-0 left-0 right-0 p-1 bg-black bg-opacity-50">
+                                    <p className="text-xs text-center text-white truncate">{member.name}</p>
+                                 </div>
                              </div>
                          ))}
                      </div>
@@ -172,7 +184,8 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({ isGroupCall, callType, 
                 )}
             </div>
 
-            {callType === 'video' && (
+            {/* Picture-in-Picture only for 1-on-1 video calls */}
+            {callType === 'video' && !isGroupCall && (
                 <div className="absolute bottom-24 right-5 w-48 h-36 md:w-64 md:h-48 rounded-lg shadow-lg overflow-hidden border-2 border-gray-600 z-20">
                     <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-full object-cover"></video>
                     {!isCameraOn && (
