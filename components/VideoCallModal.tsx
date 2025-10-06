@@ -26,6 +26,64 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({ isGroupCall, callType, 
             streamRef.current = null;
         }
     };
+    
+    // Ringtone effect
+    useEffect(() => {
+        const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+        if (!AudioContext) {
+            console.warn("Web Audio API is not supported in this browser.");
+            return;
+        }
+
+        const audioContext = new AudioContext();
+        let ringInterval: ReturnType<typeof setInterval> | null = null;
+        let isRinging = true;
+
+        const playRingSequence = () => {
+            if (!isRinging || audioContext.state === 'closed') return;
+
+            const now = audioContext.currentTime;
+            
+            // First tone
+            const osc1 = audioContext.createOscillator();
+            const gain1 = audioContext.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(440, now); // A4 note
+            gain1.gain.setValueAtTime(0, now);
+            gain1.gain.linearRampToValueAtTime(0.5, now + 0.05);
+            gain1.gain.linearRampToValueAtTime(0, now + 0.4);
+            osc1.connect(gain1);
+            gain1.connect(audioContext.destination);
+            osc1.start(now);
+            osc1.stop(now + 0.4);
+
+            // Second tone
+            const osc2 = audioContext.createOscillator();
+            const gain2 = audioContext.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(480, now + 0.5);
+            gain2.gain.setValueAtTime(0, now + 0.5);
+            gain2.gain.linearRampToValueAtTime(0.5, now + 0.55);
+            gain2.gain.linearRampToValueAtTime(0, now + 0.9);
+            osc2.connect(gain2);
+            gain2.connect(audioContext.destination);
+            osc2.start(now + 0.5);
+            osc2.stop(now + 0.9);
+        };
+        
+        playRingSequence();
+        ringInterval = setInterval(playRingSequence, 2000); // Repeat every 2 seconds
+
+        return () => {
+            isRinging = false;
+            if (ringInterval) {
+                clearInterval(ringInterval);
+            }
+            if (audioContext.state !== 'closed') {
+                audioContext.close();
+            }
+        };
+    }, []); // Run only once on mount
 
     useEffect(() => {
         const startStream = async () => {
@@ -79,7 +137,7 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({ isGroupCall, callType, 
         onClose();
     };
 
-    const callTitle = isGroupCall ? "Appel de Groupe" : `${callType === 'video' ? 'Appel Vidéo' : 'Appel Audio'} avec ${targetMember?.name}`;
+    const callTitle = isGroupCall ? `Appel de Groupe ${callType === 'video' ? 'Vidéo' : 'Audio'}` : `${callType === 'video' ? 'Appel Vidéo' : 'Appel Audio'} avec ${targetMember?.name}`;
 
     return (
         <div className="fixed inset-0 bg-gray-900 flex flex-col items-center justify-center z-50 text-white">

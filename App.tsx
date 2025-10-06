@@ -15,8 +15,8 @@ import Login from './components/Login';
 import NotificationCenter from './components/NotificationCenter';
 import Cotisations from './components/Cotisations';
 // FIX: Imported the 'Photo' type to resolve the 'Cannot find name' error.
-import { Page, Member, Contribution, UserProfile, ChatMessage, AppEvent, Notification, NotificationPreferences, Role, Permission, Photo, ContributionType } from './types';
-import { MOCK_MEMBERS, MOCK_CONTRIBUTIONS, MOCK_MESSAGES, MOCK_EVENTS, MOCK_PHOTOS, MOCK_ROLES, MOCK_PERMISSIONS, MOCK_CONTRIBUTION_TYPES } from './constants';
+import { Page, Member, Contribution, UserProfile, ChatMessage, AppEvent, Notification, NotificationPreferences, Role, Permission, Photo, ContributionType, DocArticle } from './types';
+import { MOCK_MEMBERS, MOCK_CONTRIBUTIONS, MOCK_MESSAGES, MOCK_EVENTS, MOCK_PHOTOS, MOCK_ROLES, MOCK_PERMISSIONS, MOCK_CONTRIBUTION_TYPES, MOCK_DOC_ARTICLES } from './constants';
 import ProfileModal from './components/ProfileModal';
 
 const App: React.FC = () => {
@@ -27,6 +27,7 @@ const App: React.FC = () => {
   const [events, setEvents] = useState<AppEvent[]>(MOCK_EVENTS);
   const [photos, setPhotos] = useState<Photo[]>(MOCK_PHOTOS);
   const [contributionTypes, setContributionTypes] = useState<ContributionType[]>(MOCK_CONTRIBUTION_TYPES);
+  const [docArticles, setDocArticles] = useState<DocArticle[]>(MOCK_DOC_ARTICLES);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -191,6 +192,7 @@ const App: React.FC = () => {
     setPhotos(MOCK_PHOTOS);
     setRoles(MOCK_ROLES);
     setContributionTypes(MOCK_CONTRIBUTION_TYPES);
+    setDocArticles(MOCK_DOC_ARTICLES);
     setNotifications([]);
     addNotification({ type: 'success', title: 'Réinitialisation terminée', message: 'Les données de l\'application ont été réinitialisées.' });
   };
@@ -257,6 +259,24 @@ const App: React.FC = () => {
     addNotification({ type: 'info', title: 'Assignations modifiées', message: 'Les cotisations du membre ont été mises à jour.' });
   };
 
+  const handleSaveDocArticle = (articleToSave: DocArticle) => {
+    const existing = docArticles.find(a => a.id === articleToSave.id);
+    if (existing) {
+        setDocArticles(docArticles.map(a => (a.id === articleToSave.id ? articleToSave : a)));
+        addNotification({ type: 'success', title: 'Documentation mise à jour', message: `L'article "${articleToSave.title}" a été modifié.` });
+    } else {
+        setDocArticles(prev => [...prev, articleToSave]);
+        addNotification({ type: 'success', title: 'Article ajouté', message: `L'article "${articleToSave.title}" a été créé.` });
+    }
+  };
+
+  const handleDeleteDocArticle = (articleId: string) => {
+      const articleToDelete = docArticles.find(a => a.id === articleId);
+      if (articleToDelete) {
+        setDocArticles(docArticles.filter(a => a.id !== articleId));
+        addNotification({ type: 'success', title: 'Article supprimé', message: `L'article "${articleToDelete.title}" a été supprimé.` });
+      }
+  };
 
   const renderPage = () => {
     switch (currentPage) {
@@ -283,7 +303,11 @@ const App: React.FC = () => {
        case 'Live':
         return <Live />;
        case 'Documentation':
-        return <Documentation />;
+        return <Documentation 
+                    articles={docArticles}
+                    onSaveArticle={handleSaveDocArticle}
+                    onDeleteArticle={handleDeleteDocArticle}
+               />;
        case 'Paramètres':
         return <Settings 
                  userProfile={userProfile}

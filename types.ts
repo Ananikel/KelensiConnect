@@ -103,3 +103,11 @@ export interface NotificationPreferences {
   upcomingEvents: boolean;
   pendingContributions: boolean;
 }
+
+export interface DocArticle {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  lastModified: string;
+}

@@ -276,21 +276,14 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
                                      </div>
                                 </div>
                                 <div className="flex-shrink-0">
-                                    {selectedId === 0 ? (
-                                        <button onClick={() => handleStartCall('video')} className="flex items-center space-x-2 px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" aria-label="Démarrer un appel de groupe">
-                                            <VideoIcon />
-                                            <span className="hidden sm:inline">Appel de groupe</span>
+                                    <div className="flex items-center space-x-2 sm:space-x-4">
+                                        <button onClick={() => handleStartCall('audio')} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label={`Démarrer un appel ${selectedId === 0 ? 'de groupe ' : ''}audio`}>
+                                            <PhoneIcon />
                                         </button>
-                                    ) : (
-                                        <div className="flex items-center space-x-2 sm:space-x-4">
-                                            <button onClick={() => handleStartCall('audio')} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label="Démarrer un appel audio">
-                                                <PhoneIcon />
-                                            </button>
-                                            <button onClick={() => handleStartCall('video')} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label="Démarrer un appel vidéo">
-                                                <VideoIcon />
-                                            </button>
-                                        </div>
-                                    )}
+                                        <button onClick={() => handleStartCall('video')} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label={`Démarrer un appel ${selectedId === 0 ? 'de groupe ' : ''}vidéo`}>
+                                            <VideoIcon />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 

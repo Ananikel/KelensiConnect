@@ -1,4 +1,4 @@
-import { Member, Contribution, ChatMessage, AppEvent, Photo, Role, Permission, ContributionType } from './types';
+import { Member, Contribution, ChatMessage, AppEvent, Photo, Role, Permission, ContributionType, DocArticle } from './types';
 
 export const MOCK_PERMISSIONS: Permission[] = [
     // Membres
@@ -186,4 +186,71 @@ export const MOCK_PHOTOS: Photo[] = [
     { id: 7, url: 'https://picsum.photos/seed/kelensi7/800/600', title: 'Activité sportive', description: 'Match de football amical entre membres.', uploadDate: '2024-03-18T16:00:00Z' },
     { id: 8, url: 'https://picsum.photos/seed/kelensi8/800/600', title: 'Visite caritative', description: 'Visite à l\'orphelinat "La Providence".', uploadDate: '2024-02-22T11:00:00Z' },
     { id: 9, url: 'https://picsum.photos/seed/kelensi9/800/600', title: 'Fête de Fin d\'Année 2023', description: 'Célébration à la plage de Lomé.', uploadDate: '2023-12-22T20:00:00Z' },
+];
+
+export const MOCK_DOC_ARTICLES: DocArticle[] = [
+    {
+        id: 'welcome',
+        title: 'Bienvenue sur KelensiConnect',
+        category: 'Débuter',
+        lastModified: '2024-07-20T10:00:00Z',
+        content: `Bienvenue dans le guide d'utilisation de KelensiConnect.
+Cette application est conçue pour simplifier la gestion de votre association.
+
+Fonctionnalités principales :
+- Tableau de bord : Vue d'ensemble des statistiques clés.
+- Gestion des membres : Ajoutez, modifiez et suivez les informations des membres.
+- Suivi financier : Enregistrez les cotisations et les dons.
+- Communication : Messagerie interne pour rester en contact.
+
+Explorez les différentes sections pour en savoir plus !`
+    },
+    {
+        id: 'add-member',
+        title: 'Comment ajouter un membre',
+        category: 'Gestion des Membres',
+        lastModified: '2024-07-21T11:30:00Z',
+        content: `Pour ajouter un nouveau membre, suivez ces étapes :
+
+1. Accédez à la page "Membres" depuis le menu latéral.
+2. Cliquez sur le bouton "Ajouter Membre" en haut à droite.
+3. Remplissez le formulaire avec les informations du membre.
+   - Le nom, l'email, la date de naissance et la descendance sont obligatoires.
+   - Vous pouvez prendre une photo avec la webcam ou laisser l'avatar par défaut.
+4. Cliquez sur "Ajouter" pour sauvegarder le nouveau membre.
+
+Le membre apparaîtra immédiatement dans la liste.`
+    },
+    {
+        id: 'manage-contributions',
+        title: 'Gérer les types de cotisations',
+        category: 'Finances',
+        lastModified: '2024-07-22T09:00:00Z',
+        content: `La page "Cotisations" vous permet de définir les différents types de contributions financières.
+
+Créer un type de cotisation :
+- Allez sur la page "Cotisations".
+- Cliquez sur "Ajouter un type".
+- Donnez un nom, un montant, une fréquence (ex: Annuelle) et une description.
+
+Assigner un type à un membre :
+- Dans la seconde section de la page "Cotisations", trouvez le membre dans la liste.
+- Cliquez sur "Gérer" à droite de son nom.
+- Cochez les cases correspondant aux cotisations que ce membre doit payer.
+- Enregistrez les modifications.
+
+Une fois assignées, vous pourrez suivre les paiements effectifs dans la page "Finances".`
+    },
+    {
+        id: 'faq-1',
+        title: 'Puis-je exporter les données ?',
+        category: 'FAQ',
+        lastModified: '2024-07-19T15:00:00Z',
+        content: `Oui, l'exportation des données est possible pour plusieurs modules.
+
+- Membres : Sur la page "Membres", cliquez sur le bouton "Exporter" pour télécharger la liste complète au format CSV, compatible avec Excel et Google Sheets.
+- Finances : Sur la page "Finances", le bouton "Exporter" vous permet de télécharger un rapport de toutes les transactions financières enregistrées.
+
+Assurez-vous d'avoir les permissions nécessaires (rôle Administrateur ou Trésorier) pour accéder à ces fonctionnalités.`
+    }
 ];
