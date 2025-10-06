@@ -95,13 +95,13 @@ const Galerie: React.FC<GalerieProps> = ({ photos, setPhotos }) => {
         }
     };
 
-    const handleNextPreview = () => {
+    const handleNextPreview = useCallback(() => {
         setPreviewIndex(prev => (prev + 1) % filteredPhotos.length);
-    };
+    }, [filteredPhotos.length]);
 
-    const handlePrevPreview = () => {
+    const handlePrevPreview = useCallback(() => {
         setPreviewIndex(prev => (prev - 1 + filteredPhotos.length) % filteredPhotos.length);
-    };
+    }, [filteredPhotos.length]);
     
     const handleExport = () => {
         const headers = ['ID', 'Titre', 'Description', "Date d'ajout", 'URL'];
@@ -227,10 +227,12 @@ const AddEditPhotoModal: React.FC<{ photo: Photo | null; onSave: (data: Omit<Pho
     const [description, setDescription] = useState(photo?.description || '');
     const [url, setUrl] = useState(photo?.url || '');
     const [isTakingPhoto, setTakingPhoto] = useState(false);
+    const [cameraError, setCameraError] = useState<string | null>(null);
     
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const streamRef = useRef<MediaStream | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const stopCamera = useCallback(() => {
         if (streamRef.current) {
@@ -244,14 +246,24 @@ const AddEditPhotoModal: React.FC<{ photo: Photo | null; onSave: (data: Omit<Pho
     }, [stopCamera]);
 
     const handleStartCamera = async () => {
+        setCameraError(null);
+        setUrl('');
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
             streamRef.current = stream;
             if (videoRef.current) videoRef.current.srcObject = stream;
             setTakingPhoto(true);
         } catch (err) {
-            alert("Impossible d'accéder à la caméra.");
+            console.error("Erreur d'accès à la caméra:", err);
+            setCameraError("Impossible d'accéder à la caméra. Veuillez vérifier les autorisations dans les paramètres de votre navigateur.");
+            setTakingPhoto(false);
         }
+    };
+
+    const handleCancelCamera = () => {
+        stopCamera();
+        setTakingPhoto(false);
+        setCameraError(null);
     };
 
     const handleCapture = () => {
@@ -262,9 +274,14 @@ const AddEditPhotoModal: React.FC<{ photo: Photo | null; onSave: (data: Omit<Pho
             canvasRef.current.height = video.videoHeight;
             context?.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
             setUrl(canvasRef.current.toDataURL('image/png'));
-            setTakingPhoto(false);
             stopCamera();
+            setTakingPhoto(false);
         }
+    };
+    
+    const triggerFileUpload = () => {
+        handleCancelCamera();
+        fileInputRef.current?.click();
     };
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -293,41 +310,61 @@ const AddEditPhotoModal: React.FC<{ photo: Photo | null; onSave: (data: Omit<Pho
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" aria-label="Fermer"><CloseIcon /></button>
                 </div>
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                     <div>
+                    <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Image</label>
-                        <div className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-md text-center">
-                            {url && !isTakingPhoto ? (
-                                <img src={url} alt="Aperçu" className="max-h-60 mx-auto rounded-md" />
-                            ) : isTakingPhoto ? (
-                                <div>
-                                    <video ref={videoRef} autoPlay playsInline className="w-full h-auto rounded-md mb-2"></video>
-                                    <button type="button" onClick={handleCapture} className="px-4 py-2 bg-indigo-600 text-white rounded-md">Capturer</button>
+                        <div className="w-full aspect-video bg-gray-100 dark:bg-gray-700 rounded-md flex items-center justify-center p-1 border-2 border-dashed border-gray-300 dark:border-gray-600">
+                           {isTakingPhoto ? (
+                                <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover rounded-md"></video>
+                           ) : url ? (
+                                <img src={url} alt="Aperçu" className="max-w-full max-h-full object-contain rounded-md" />
+                           ) : (
+                                <div className="text-center text-gray-500 dark:text-gray-400">
+                                    <div className="w-12 h-12 mx-auto"><CameraIcon /></div>
+                                    <p className="mt-2 text-sm">L'aperçu de l'image apparaîtra ici</p>
                                 </div>
-                            ) : (
-                                <p className="text-gray-500 dark:text-gray-400">Aucune image sélectionnée</p>
-                            )}
-                             <canvas ref={canvasRef} className="hidden"></canvas>
+                           )}
+                           <canvas ref={canvasRef} className="hidden"></canvas>
                         </div>
-                        <div className="flex justify-center space-x-4 mt-2">
-                             <label htmlFor="file-upload" className="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium">
-                                Télécharger un fichier
-                            </label>
-                            <input id="file-upload" type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
-                            <span>ou</span>
-                            <button type="button" onClick={handleStartCamera} className="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium">Prendre une photo</button>
-                        </div>
+                        {cameraError && <p className="text-sm text-red-500 mt-2 text-center">{cameraError}</p>}
                     </div>
+                    
+                     <div className="flex items-center justify-center flex-wrap gap-4 mt-2">
+                        {!isTakingPhoto ? (
+                            <>
+                                <button type="button" onClick={triggerFileUpload} className="flex items-center space-x-2 px-4 py-2 border border-gray-300 dark:border-gray-500 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    <UploadIcon />
+                                    <span>Télécharger</span>
+                                </button>
+                                <input id="file-upload" type="file" accept="image/*" onChange={handleFileUpload} className="hidden" ref={fileInputRef} />
+                                <button type="button" onClick={handleStartCamera} className="flex items-center space-x-2 px-4 py-2 border border-gray-300 dark:border-gray-500 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    <div className="w-5 h-5"><CameraIcon/></div>
+                                    <span>Prendre une photo</span>
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <button type="button" onClick={handleCapture} className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    <div className="w-5 h-5"><CameraIcon/></div>
+                                    <span>Capturer la photo</span>
+                                </button>
+                                <button type="button" onClick={handleCancelCamera} className="px-4 py-2 border border-gray-300 dark:border-gray-500 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    Annuler
+                                </button>
+                            </>
+                        )}
+                    </div>
+                    
                     <div>
                         <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Titre</label>
-                        <input type="text" id="title" value={title} onChange={e => setTitle(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md" required />
+                        <input type="text" id="title" value={title} onChange={e => setTitle(e.target.value)} disabled={!url} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-700/50 disabled:cursor-not-allowed" required />
                     </div>
                     <div>
                         <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                        <textarea id="description" value={description} onChange={e => setDescription(e.target.value)} rows={3} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md" />
+                        <textarea id="description" value={description} onChange={e => setDescription(e.target.value)} rows={3} disabled={!url} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-700/50 disabled:cursor-not-allowed" />
                     </div>
                     <div className="pt-4 flex justify-end">
                         <button type="button" onClick={onClose} className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md mr-2">Annuler</button>
-                        <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md">Enregistrer</button>
+                        <button type="submit" disabled={!url} className="bg-indigo-600 text-white px-4 py-2 rounded-md disabled:bg-indigo-400 dark:disabled:bg-indigo-800 disabled:cursor-not-allowed">Enregistrer</button>
                     </div>
                 </form>
             </div>
@@ -355,44 +392,55 @@ const DeleteConfirmationModal: React.FC<{photo: Photo; onConfirm: () => void; on
 
 // Preview Modal (Lightbox)
 const PhotoPreviewModal: React.FC<{ photos: Photo[]; startIndex: number; onClose: () => void; onNext: () => void; onPrev: () => void; }> = ({ photos, startIndex, onClose, onNext, onPrev }) => {
-    const [currentIndex, setCurrentIndex] = useState(startIndex);
     
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'ArrowRight') onNext();
-            if (e.key === 'ArrowLeft') onPrev();
-            if (e.key === 'Escape') onClose();
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+    const handleKeyDown = useCallback((e: KeyboardEvent) => {
+        if (e.key === 'ArrowRight') onNext();
+        if (e.key === 'ArrowLeft') onPrev();
+        if (e.key === 'Escape') onClose();
     }, [onNext, onPrev, onClose]);
     
     useEffect(() => {
-        setCurrentIndex(startIndex);
-    }, [startIndex]);
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [handleKeyDown]);
     
-    const photo = photos[currentIndex];
+    const photo = photos[startIndex];
     if (!photo) return null;
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-80 flex flex-col items-center justify-center z-[60] p-4" onClick={onClose}>
-            <button onClick={onClose} className="absolute top-4 right-4 text-white text-4xl" aria-label="Fermer">&times;</button>
+            <button onClick={onClose} className="absolute top-4 right-4 text-white text-4xl hover:text-gray-300 transition-colors" aria-label="Fermer">&times;</button>
             
             <div className="relative w-full h-full flex items-center justify-center" onClick={e => e.stopPropagation()}>
                 {photos.length > 1 && (
                      <>
-                        <button onClick={onPrev} className="absolute left-4 text-white text-4xl bg-black/30 p-2 rounded-full" aria-label="Précédent">&#10094;</button>
-                        <button onClick={onNext} className="absolute right-4 text-white text-4xl bg-black/30 p-2 rounded-full" aria-label="Suivant">&#10095;</button>
+                        <button onClick={onPrev} className="absolute left-4 text-white text-4xl bg-black/30 p-2 rounded-full hover:bg-black/50 transition-colors" aria-label="Précédent">&#10094;</button>
+                        <button onClick={onNext} className="absolute right-4 text-white text-4xl bg-black/30 p-2 rounded-full hover:bg-black/50 transition-colors" aria-label="Suivant">&#10095;</button>
                      </>
                 )}
-                <div className="max-w-[85vw] max-h-[85vh] flex flex-col items-center">
-                    <img src={photo.url} alt={photo.title} className="max-w-full max-h-full object-contain rounded-lg" />
+                <div className="max-w-[85vw] max-h-[85vh] flex flex-col items-center animate-zoom-in">
+                    <img src={photo.url} alt={photo.title} className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
                      <div className="text-center mt-3 text-white bg-black/50 p-2 rounded-md">
                         <h3 className="font-bold text-lg">{photo.title}</h3>
-                        <p className="text-sm">{photo.description}</p>
+                        {photo.description && <p className="text-sm text-gray-300">{photo.description}</p>}
                     </div>
                 </div>
             </div>
+             <style>{`
+                @keyframes zoom-in {
+                    from {
+                        transform: scale(0.8);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: scale(1);
+                        opacity: 1;
+                    }
+                }
+                .animate-zoom-in {
+                    animation: zoom-in 0.3s ease-out forwards;
+                }
+            `}</style>
         </div>
     );
 };
