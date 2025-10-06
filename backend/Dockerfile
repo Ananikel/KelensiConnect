@@ -1,48 +1,46 @@
 # Stage 1: Build the application
-# Use the official Node image for building
 FROM node:20-alpine AS builder
 
-# Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json (or yarn.lock)
-# The order matters for efficient caching
+# Copy and install dependencies
 COPY package*.json ./
-
-# Install dependencies
 RUN npm install
 
 # Copy the rest of the application source code
 COPY . .
 
-# Build the TypeScript application (assuming a 'build' script exists to compile TS to JS)
-# The output is typically placed in a 'dist' folder
+# Build the TypeScript application (creates the 'dist' folder)
 RUN npm run build
 
-# Stage 2: Create the final production image
-# Use a smaller, secure Node runtime image
+#----------------------------------------------------
+# Stage 2: Create the final production image (FIXED)
+#----------------------------------------------------
 FROM node:20-alpine AS production
 
-# Set the working directory
 WORKDIR /app
 
-# Copy only production dependencies from the builder stage
+# 1. Copy required production files from the builder stage:
+#    - package*.json: Needed for npm start/scripts if used, or just for context.
+#    - node_modules: Only production dependencies.
+#    - The compiled application (the 'dist' folder).
+#    - The entry point file (e.g., 'index.js', 'server.js', or the compiled entry point).
+#    
+#    ASSUMPTION: The compiled entry file is inside 'dist', but we also need
+#    package.json to run 'npm install --only=production' and perhaps a start script.
+
+# Copy only package.json for production install
 COPY --from=builder /app/package*.json ./
+
 # Install only production dependencies
 RUN npm install --only=production
 
-# Copy the built application files from the builder stage (e.g., the compiled JS and assets)
-# Adjust the path (e.g., 'dist') if your build process uses a different directory
+# The CRUCIAL FIX: Copy the entire compiled 'dist' folder
 COPY --from=builder /app/dist ./dist
 
-# Copy other necessary files like the .env-related settings if needed (though environment vars are usually passed at runtime)
-# You might need to copy files like 'server.js' or 'index.js' if they are in the root and needed to start the app.
-# Assuming the entry file is within 'dist', or a separate 'start' script exists.
-# For typical Express/Node projects, the entry point is often in the compiled 'dist' folder.
-
-# Expose the internal port (as defined in docker-compose: 'PORT: 5000')
+# EXPOSE the internal port (5000)
 EXPOSE 5000
 
 # Command to run the application
-# Assuming the main compiled file is 'dist/index.js' or a similar entry point.
+# This CMD line now correctly references the file that exists inside the copied /app/dist folder.
 CMD ["node", "dist/index.js"]
