@@ -1,9 +1,9 @@
-
 import React, { useState, useMemo } from 'react';
 import { Contribution, Member } from '../types';
 import SearchIcon from './icons/SearchIcon';
 import PlusIcon from './icons/PlusIcon';
 import CloseIcon from './icons/CloseIcon';
+import DownloadIcon from './icons/DownloadIcon';
 
 
 interface FinancesProps {
@@ -72,6 +72,34 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
         handleCloseModal();
     };
 
+    const handleExportContributions = () => {
+        const headers = ['ID Contribution', 'ID Membre', 'Nom du Membre', 'Montant (CFA)', 'Date', 'Type', 'Statut'];
+        const csvRows = [
+            headers.join(','),
+            ...contributions.map(c => [
+                c.id,
+                c.memberId,
+                `"${c.memberName.replace(/"/g, '""')}"`, // Escape quotes and wrap
+                c.amount,
+                new Date(c.date).toLocaleDateString('fr-FR'),
+                c.type,
+                c.status
+            ].join(','))
+        ];
+        
+        const csvString = csvRows.join('\n');
+        const blob = new Blob([`\uFEFF${csvString}`], { type: 'text/csv;charset=utf-8;' }); // Add BOM for Excel
+
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'contributions_kelensiconnect.csv');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <>
             <div className="bg-white p-6 rounded-lg shadow-md">
@@ -100,9 +128,13 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
                             <option value="Payé">Payé</option>
                             <option value="En attente">En attente</option>
                         </select>
+                        <button onClick={handleExportContributions} className="flex items-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors shadow">
+                            <DownloadIcon />
+                            <span className="ml-2 hidden md:inline">Exporter</span>
+                        </button>
                          <button onClick={handleOpenModal} className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors shadow">
                             <PlusIcon />
-                            <span className="ml-2 hidden md:inline">Ajouter Contribution</span>
+                            <span className="ml-2 hidden md:inline">Ajouter</span>
                         </button>
                     </div>
                 </div>

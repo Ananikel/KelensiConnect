@@ -5,6 +5,7 @@ import CameraIcon from './icons/CameraIcon';
 import CloseIcon from './icons/CloseIcon';
 import EditIcon from './icons/EditIcon';
 import DeleteIcon from './icons/DeleteIcon';
+import DownloadIcon from './icons/DownloadIcon';
 
 interface MembersProps {
     members: Member[];
@@ -170,6 +171,35 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
         setAvatarModalOpen(true);
     };
 
+    const handleExportMembers = () => {
+        const headers = ['ID', 'Nom', 'Email', 'Téléphone', "Date d'adhésion", 'Statut', 'Descendance'];
+        const csvRows = [
+            headers.join(','),
+            ...members.map(m => [
+                m.id,
+                `"${m.name.replace(/"/g, '""')}"`, // Escape quotes and wrap in quotes
+                m.email,
+                m.phone,
+                new Date(m.joinDate).toLocaleDateString('fr-FR'),
+                m.status,
+                `"${m.descendance.replace(/"/g, '""')}"`
+            ].join(','))
+        ];
+
+        const csvString = csvRows.join('\n');
+        const blob = new Blob([`\uFEFF${csvString}`], { type: 'text/csv;charset=utf-8;' }); // Add BOM for Excel compatibility
+
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'membres_kelensiconnect.csv');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+
     return (
         <>
             <div className="bg-white p-6 rounded-lg shadow-md">
@@ -186,7 +216,7 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                             <SearchIcon />
                         </div>
                     </div>
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2 md:space-x-4">
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
@@ -196,6 +226,10 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                             <option>Actif</option>
                             <option>Inactif</option>
                         </select>
+                        <button onClick={handleExportMembers} className="flex items-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors shadow">
+                            <DownloadIcon />
+                            <span className="ml-2 hidden md:inline">Exporter</span>
+                        </button>
                          <button onClick={handleOpenAddModal} className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors shadow">
                             Ajouter Membre
                         </button>
