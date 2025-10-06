@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { UserProfile } from '../types';
 import CloseIcon from './icons/CloseIcon';
+import CameraIcon from './icons/CameraIcon';
+import UploadIcon from './icons/UploadIcon';
 
 interface ProfileModalProps {
     user: UserProfile;
@@ -11,6 +13,66 @@ interface ProfileModalProps {
 const ProfileModal: React.FC<ProfileModalProps> = ({ user, onSave, onClose }) => {
     const [name, setName] = useState(user.name);
     const [avatar, setAvatar] = useState(user.avatar);
+    const [isCameraActive, setCameraActive] = useState(false);
+    const [cameraError, setCameraError] = useState<string | null>(null);
+
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const streamRef = useRef<MediaStream | null>(null);
+
+    const stopCamera = useCallback(() => {
+        if (streamRef.current) {
+            streamRef.current.getTracks().forEach(track => track.stop());
+            streamRef.current = null;
+        }
+        setCameraActive(false);
+    }, []);
+
+    useEffect(() => {
+        return () => stopCamera();
+    }, [stopCamera]);
+
+    const handleStartCamera = async () => {
+        setCameraError(null);
+        try {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error("La fonctionnalité caméra n'est pas supportée par ce navigateur.");
+            }
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            streamRef.current = stream;
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+            }
+            setCameraActive(true);
+        } catch (err) {
+            console.error("Erreur d'accès à la caméra:", err);
+            setCameraError("Impossible d'accéder à la caméra. Veuillez vérifier les autorisations.");
+        }
+    };
+
+    const handleCapture = () => {
+        if (videoRef.current && canvasRef.current) {
+            const context = canvasRef.current.getContext('2d');
+            const video = videoRef.current;
+            canvasRef.current.width = video.videoWidth;
+            canvasRef.current.height = video.videoHeight;
+            context?.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+            setAvatar(canvasRef.current.toDataURL('image/jpeg', 0.9));
+            stopCamera();
+        }
+    };
+
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (loadEvent) => {
+                setAvatar(loadEvent.target?.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -26,9 +88,43 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, onSave, onClose }) =>
                         <CloseIcon />
                     </button>
                 </div>
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                    <div className="text-center">
-                        <img src={avatar} alt="Avatar" className="w-24 h-24 rounded-full object-cover mx-auto mb-4" />
+                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                    <div className="flex flex-col items-center space-y-4">
+                        <div className="w-32 h-32 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden relative">
+                            {isCameraActive ? (
+                                <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+                            ) : (
+                                <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+                            )}
+                        </div>
+                        <canvas ref={canvasRef} className="hidden"></canvas>
+                        
+                        {cameraError && <p className="text-sm text-red-500 text-center">{cameraError}</p>}
+                        
+                        <div className="flex items-center space-x-4">
+                            {isCameraActive ? (
+                                <>
+                                    <button type="button" onClick={handleCapture} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        Capturer
+                                    </button>
+                                    <button type="button" onClick={stopCamera} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400">
+                                        Annuler
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <button type="button" onClick={() => fileInputRef.current?.click()} className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        <UploadIcon />
+                                        <span>Télécharger</span>
+                                    </button>
+                                    <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept="image/*" className="hidden" />
+                                    <button type="button" onClick={handleStartCamera} className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        <div className="w-5 h-5"><CameraIcon /></div>
+                                        <span>Prendre photo</span>
+                                    </button>
+                                </>
+                            )}
+                        </div>
                     </div>
                     <div>
                         <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nom</label>
@@ -37,17 +133,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, onSave, onClose }) =>
                             id="name"
                             value={name}
                             onChange={e => setName(e.target.value)}
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="avatar" className="block text-sm font-medium text-gray-700 dark:text-gray-300">URL de l'avatar</label>
-                        <input
-                            type="text"
-                            id="avatar"
-                            value={avatar}
-                            onChange={e => setAvatar(e.target.value)}
                             className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
                             required
                         />
