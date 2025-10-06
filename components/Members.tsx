@@ -1,9 +1,10 @@
-
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Member } from '../types';
 import SearchIcon from './icons/SearchIcon';
 import CameraIcon from './icons/CameraIcon';
 import CloseIcon from './icons/CloseIcon';
+import EditIcon from './icons/EditIcon';
+import DeleteIcon from './icons/DeleteIcon';
 
 interface MembersProps {
     members: Member[];
@@ -17,7 +18,12 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
     const [isAvatarModalOpen, setAvatarModalOpen] = useState(false);
     const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
 
-    // Form state
+    // Edit and Delete state
+    const [editingMember, setEditingMember] = useState<Member | null>(null);
+    const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
+
+    // Form state for adding
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [descendance, setDescendance] = useState('');
@@ -45,6 +51,7 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
             streamRef.current.getTracks().forEach(track => track.stop());
             streamRef.current = null;
         }
+        setIsCameraOn(false);
     }, []);
 
     const startCamera = useCallback(async () => {
@@ -76,27 +83,29 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                 canvasRef.current.width = video.videoWidth;
                 canvasRef.current.height = video.videoHeight;
                 context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-                setCapturedImage(canvasRef.current.toDataURL('image/png'));
+                const newImage = canvasRef.current.toDataURL('image/png');
+                setCapturedImage(newImage);
+                if(editingMember) {
+                    setEditingMember(prev => prev ? {...prev, avatar: newImage} : null);
+                }
                 stopCamera();
-                setIsCameraOn(false);
             }
         }
     };
     
     const handleRetake = () => {
         setCapturedImage(null);
+        if(editingMember) {
+             setEditingMember(prev => prev ? {...prev, avatar: ''} : null);
+        }
         startCamera();
     };
 
-    const handleOpenAddModal = () => {
-        setAddModalOpen(true);
-    };
+    const handleOpenAddModal = () => setAddModalOpen(true);
 
     const handleCloseAddModal = () => {
         setAddModalOpen(false);
         stopCamera();
-        setIsCameraOn(false);
-        // Reset form
         setName('');
         setEmail('');
         setDescendance('');
@@ -122,6 +131,40 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
         handleCloseAddModal();
     };
     
+    const handleOpenEditModal = (member: Member) => {
+        setEditingMember({ ...member });
+        setCapturedImage(member.avatar.startsWith('data:image') ? member.avatar : null);
+    };
+
+    const handleCloseEditModal = () => {
+        setEditingMember(null);
+        stopCamera();
+        setCapturedImage(null);
+    };
+
+    const handleUpdateMember = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingMember) return;
+        setMembers(prev => prev.map(m => m.id === editingMember.id ? editingMember : m));
+        handleCloseEditModal();
+    };
+
+    const handleOpenDeleteModal = (member: Member) => {
+        setMemberToDelete(member);
+        setDeleteModalOpen(true);
+    };
+
+    const handleCloseDeleteModal = () => {
+        setMemberToDelete(null);
+        setDeleteModalOpen(false);
+    };
+    
+    const handleConfirmDelete = () => {
+        if (!memberToDelete) return;
+        setMembers(prev => prev.filter(m => m.id !== memberToDelete.id));
+        handleCloseDeleteModal();
+    };
+
     const handleAvatarClick = (avatarUrl: string) => {
         setSelectedAvatar(avatarUrl);
         setAvatarModalOpen(true);
@@ -168,6 +211,7 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descendance</th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date d'adhésion</th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -199,6 +243,16 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                                         }`}>
                                             {member.status}
                                         </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <div className="flex items-center space-x-4">
+                                            <button onClick={() => handleOpenEditModal(member)} className="text-indigo-600 hover:text-indigo-900" title="Modifier">
+                                                <EditIcon />
+                                            </button>
+                                            <button onClick={() => handleOpenDeleteModal(member)} className="text-red-600 hover:text-red-900" title="Supprimer">
+                                                <DeleteIcon />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -265,6 +319,88 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                                 <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md">Ajouter</button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Member Modal */}
+            {editingMember && (
+                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-full overflow-y-auto">
+                        <div className="flex justify-between items-center p-4 border-b">
+                            <h3 className="text-lg font-semibold">Modifier le membre</h3>
+                            <button onClick={handleCloseEditModal} className="text-gray-400 hover:text-gray-600">
+                               <CloseIcon />
+                            </button>
+                        </div>
+                        <form onSubmit={handleUpdateMember} className="p-6 space-y-4">
+                            <div>
+                                <label htmlFor="edit-name" className="block text-sm font-medium text-gray-700">Nom complet</label>
+                                <input type="text" id="edit-name" value={editingMember.name} onChange={e => setEditingMember({...editingMember, name: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required />
+                            </div>
+                             <div>
+                                <label htmlFor="edit-email" className="block text-sm font-medium text-gray-700">Email</label>
+                                <input type="email" id="edit-email" value={editingMember.email} onChange={e => setEditingMember({...editingMember, email: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required />
+                            </div>
+                            <div>
+                                <label htmlFor="edit-descendance" className="block text-sm font-medium text-gray-700">Descendance</label>
+                                <input list="descendances-list" id="edit-descendance" value={editingMember.descendance} onChange={e => setEditingMember({...editingMember, descendance: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required />
+                                <datalist id="descendances-list">
+                                    {descendances.map(d => <option key={d} value={d} />)}
+                                </datalist>
+                            </div>
+                            <div>
+                                <label htmlFor="edit-status" className="block text-sm font-medium text-gray-700">Statut</label>
+                                <select id="edit-status" value={editingMember.status} onChange={e => setEditingMember({...editingMember, status: e.target.value as 'Actif' | 'Inactif'})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option>Actif</option>
+                                    <option>Inactif</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Photo de profil</label>
+                                <div className="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-md">
+                                    { (capturedImage || editingMember.avatar) && !isCameraOn ? (
+                                        <div className="text-center">
+                                            <img src={capturedImage || editingMember.avatar} alt="Avatar" className="w-32 h-32 rounded-full object-cover mx-auto" />
+                                            <button type="button" onClick={handleRetake} className="mt-2 text-sm text-indigo-600 hover:text-indigo-800">Changer la photo</button>
+                                        </div>
+                                    ) : isCameraOn ? (
+                                        <div className="text-center">
+                                            <video ref={videoRef} autoPlay playsInline className="w-full h-auto rounded-md mb-2"></video>
+                                            <button type="button" onClick={handleCapture} className="px-4 py-2 bg-indigo-600 text-white rounded-md">Capturer</button>
+                                        </div>
+                                    ) : (
+                                        <button type="button" onClick={startCamera} className="flex flex-col items-center space-y-2 text-gray-500 hover:text-indigo-600">
+                                            <CameraIcon />
+                                            <span>Prendre une photo</span>
+                                        </button>
+                                    )}
+                                    <canvas ref={canvasRef} className="hidden"></canvas>
+                                </div>
+                            </div>
+                            <div className="pt-4 flex justify-end">
+                                <button type="button" onClick={handleCloseEditModal} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md mr-2">Annuler</button>
+                                <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md">Enregistrer</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {isDeleteModalOpen && memberToDelete && (
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+                         <div className="p-6">
+                            <h3 className="text-lg font-semibold text-gray-900">Confirmer la suppression</h3>
+                            <p className="mt-2 text-sm text-gray-600">
+                                Êtes-vous sûr de vouloir supprimer <strong>{memberToDelete.name}</strong> ? Cette action est irréversible.
+                            </p>
+                         </div>
+                        <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
+                            <button type="button" onClick={handleCloseDeleteModal} className="bg-white text-gray-700 px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-50">Annuler</button>
+                            <button type="button" onClick={handleConfirmDelete} className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">Supprimer</button>
+                        </div>
                     </div>
                 </div>
             )}
