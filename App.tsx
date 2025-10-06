@@ -125,7 +125,6 @@ const App: React.FC = () => {
   useEffect(() => {
     try {
       window.localStorage.setItem('kelensi-user-profile', JSON.stringify(userProfile));
-// FIX: The catch block was missing curly braces, which caused a syntax error that broke the component's scope.
     } catch (error) {
       console.error('Erreur lors de la sauvegarde du profil dans localStorage', error);
     }
