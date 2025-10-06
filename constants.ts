@@ -1,10 +1,54 @@
-import { Member, Contribution, ChatMessage, AppEvent, Photo, Role } from './types';
+import { Member, Contribution, ChatMessage, AppEvent, Photo, Role, Permission } from './types';
+
+export const MOCK_PERMISSIONS: Permission[] = [
+    // Membres
+    { id: 'view-members', category: 'Membres', name: 'Voir les membres', description: 'Peut voir la liste des membres et leurs profils.' },
+    { id: 'manage-members', category: 'Membres', name: 'Gérer les membres', description: 'Peut ajouter, modifier et supprimer des membres.' },
+    { id: 'export-members', category: 'Membres', name: 'Exporter les membres', description: 'Peut exporter la liste des membres en CSV.' },
+
+    // Finances
+    { id: 'view-finances', category: 'Finances', name: 'Voir les finances', description: 'Peut voir le tableau de bord financier et la liste des contributions.' },
+    { id: 'manage-finances', category: 'Finances', name: 'Gérer les finances', description: 'Peut ajouter et modifier des contributions financières.' },
+    { id: 'export-finances', category: 'Finances', name: 'Exporter les finances', description: 'Peut exporter les données financières.' },
+
+    // Événements
+    { id: 'view-events', category: 'Événements', name: 'Voir les événements', description: 'Peut voir la liste des événements.' },
+    { id: 'manage-events', category: 'Événements', name: 'Gérer les événements', description: 'Peut créer, modifier et supprimer des événements.' },
+    { id: 'manage-rsvps', category: 'Événements', name: 'Gérer les participations', description: 'Peut modifier les réponses de participation (RSVP) des membres.' },
+
+    // Communication
+    { id: 'use-communication', category: 'Communication', name: 'Utiliser la messagerie', description: 'Peut envoyer et recevoir des messages.' },
+
+    // Paramètres
+    { id: 'manage-settings', category: 'Paramètres', name: 'Gérer les paramètres', description: 'Peut modifier les paramètres de l\'application (apparence, notifications).' },
+    { id: 'manage-roles', category: 'Paramètres', name: 'Gérer les rôles et permissions', description: 'Peut créer, modifier et supprimer des rôles et assigner des permissions.' },
+];
 
 export const MOCK_ROLES: Role[] = [
-    { id: 'admin', name: 'Administrateur', description: 'Accès complet à toutes les fonctionnalités de l\'application.' },
-    { id: 'treasurer', name: 'Trésorier', description: 'Gère les finances, les cotisations et les dons.' },
-    { id: 'secretary', name: 'Secrétaire', description: 'Gère les membres, les événements et la communication.' },
-    { id: 'member', name: 'Membre', description: 'Accès limité aux informations générales.' },
+    { 
+        id: 'admin', 
+        name: 'Administrateur', 
+        description: 'Accès complet à toutes les fonctionnalités de l\'application.',
+        permissionIds: MOCK_PERMISSIONS.map(p => p.id) // All permissions
+    },
+    { 
+        id: 'treasurer', 
+        name: 'Trésorier', 
+        description: 'Gère les finances, les cotisations et les dons.',
+        permissionIds: ['view-members', 'view-finances', 'manage-finances', 'export-finances', 'view-events', 'use-communication']
+    },
+    { 
+        id: 'secretary', 
+        name: 'Secrétaire', 
+        description: 'Gère les membres, les événements et la communication.',
+        permissionIds: ['view-members', 'manage-members', 'export-members', 'view-events', 'manage-events', 'manage-rsvps', 'use-communication']
+    },
+    { 
+        id: 'member', 
+        name: 'Membre', 
+        description: 'Accès limité aux informations générales.',
+        permissionIds: ['view-events', 'use-communication']
+    },
 ];
 
 const getDescendance = (name: string): string => {

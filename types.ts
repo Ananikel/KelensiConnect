@@ -1,9 +1,17 @@
-export type Page = 'Dashboard' | 'Membres' | 'Finances' | 'Communication' | 'Événements' | 'Galerie' | 'Documentation' | 'Paramètres';
+export type Page = 'Dashboard' | 'Membres' | 'Finances' | 'Communication' | 'Événements' | 'Galerie' | 'Live' | 'Documentation' | 'Paramètres';
+
+export interface Permission {
+  id: string;
+  category: string;
+  name: string;
+  description: string;
+}
 
 export interface Role {
   id: string;
   name: string;
   description: string;
+  permissionIds: string[];
 }
 
 export interface Member {

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { UserProfile, NotificationPreferences, Member, Role } from '../types';
+import { UserProfile, NotificationPreferences, Member, Role, Permission } from '../types';
 import UserIcon from './icons/UserIcon';
 import SunIcon from './icons/SunIcon';
 import MoonIcon from './icons/MoonIcon';
@@ -21,6 +21,10 @@ interface SettingsProps {
     onResetData: () => void;
     onImportData: (newMembers: Member[]) => void;
     roles: Role[];
+    permissions: Permission[];
+    members: Member[];
+    onSaveRole: (role: Role) => void;
+    onDeleteRole: (roleId: string) => void;
 }
 
 const SettingsCard: React.FC<{ title: string; description: string; icon: React.ReactNode; children: React.ReactNode }> = ({ title, description, icon, children }) => (
@@ -59,7 +63,7 @@ const ToggleSwitch: React.FC<{ enabled: boolean; onChange: (enabled: boolean) =>
 );
 
 
-const Settings: React.FC<SettingsProps> = ({ userProfile, setProfileModalOpen, theme, toggleTheme, notificationPreferences, setNotificationPreferences, onResetData, onImportData, roles }) => {
+const Settings: React.FC<SettingsProps> = ({ userProfile, setProfileModalOpen, theme, toggleTheme, notificationPreferences, setNotificationPreferences, onResetData, onImportData, roles, permissions, members, onSaveRole, onDeleteRole }) => {
     
     const [view, setView] = useState<'main' | 'roles'>('main');
     const [isResetModalOpen, setResetModalOpen] = useState(false);
@@ -75,7 +79,14 @@ const Settings: React.FC<SettingsProps> = ({ userProfile, setProfileModalOpen, t
     };
 
     if (view === 'roles') {
-        return <RolesPermissions roles={roles} onBack={() => setView('main')} />;
+        return <RolesPermissions 
+            roles={roles} 
+            onBack={() => setView('main')} 
+            permissions={permissions}
+            members={members}
+            onSaveRole={onSaveRole}
+            onDeleteRole={onDeleteRole}
+        />;
     }
 
     return (

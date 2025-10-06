@@ -7,13 +7,14 @@ import Finances from './components/Finances';
 import Communication from './components/Communication';
 import Events from './components/Events';
 import Galerie from './components/Galerie';
+import Live from './components/Live';
 import Documentation from './components/Documentation';
 import Settings from './components/Settings';
 import Header from './components/Header';
 import Login from './components/Login';
 import NotificationCenter from './components/NotificationCenter';
-import { Page, Member, Contribution, UserProfile, ChatMessage, AppEvent, Notification, Photo, NotificationPreferences, Role } from './types';
-import { MOCK_MEMBERS, MOCK_CONTRIBUTIONS, MOCK_MESSAGES, MOCK_EVENTS, MOCK_PHOTOS, MOCK_ROLES } from './constants';
+import { Page, Member, Contribution, UserProfile, ChatMessage, AppEvent, Notification, Photo, NotificationPreferences, Role, Permission } from './types';
+import { MOCK_MEMBERS, MOCK_CONTRIBUTIONS, MOCK_MESSAGES, MOCK_EVENTS, MOCK_PHOTOS, MOCK_ROLES, MOCK_PERMISSIONS } from './constants';
 import ProfileModal from './components/ProfileModal';
 
 const App: React.FC = () => {
@@ -27,6 +28,7 @@ const App: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [roles, setRoles] = useState<Role[]>(MOCK_ROLES);
+  const [permissions, setPermissions] = useState<Permission[]>(MOCK_PERMISSIONS);
   
   // State for Settings
   const [notificationPreferences, setNotificationPreferences] = useState<NotificationPreferences>(() => {
@@ -212,6 +214,22 @@ const App: React.FC = () => {
      }
   };
 
+  const handleSaveRole = (roleToSave: Role) => {
+      const existing = roles.find(r => r.id === roleToSave.id);
+      if (existing) {
+          setRoles(roles.map(r => (r.id === roleToSave.id ? roleToSave : r)));
+          addNotification({ type: 'success', title: 'Rôle modifié', message: `Le rôle "${roleToSave.name}" a été mis à jour.` });
+      } else {
+          setRoles([...roles, roleToSave]);
+          addNotification({ type: 'success', title: 'Rôle ajouté', message: `Le rôle "${roleToSave.name}" a été créé.` });
+      }
+  };
+
+  const handleDeleteRole = (roleId: string) => {
+      setRoles(roles.filter(r => r.id !== roleId));
+      addNotification({ type: 'success', title: 'Rôle supprimé', message: 'Le rôle a été supprimé avec succès.' });
+  };
+
 
   const renderPage = () => {
     switch (currentPage) {
@@ -227,6 +245,8 @@ const App: React.FC = () => {
         return <Events events={events} setEvents={setEvents} members={members} />;
        case 'Galerie':
         return <Galerie photos={photos} setPhotos={setPhotos} />;
+       case 'Live':
+        return <Live />;
        case 'Documentation':
         return <Documentation />;
        case 'Paramètres':
@@ -240,6 +260,10 @@ const App: React.FC = () => {
                  onResetData={handleResetData}
                  onImportData={handleImportMembers}
                  roles={roles}
+                 permissions={permissions}
+                 members={members}
+                 onSaveRole={handleSaveRole}
+                 onDeleteRole={handleDeleteRole}
                />;
       default:
         return <Dashboard members={members} contributions={contributions} theme={theme} />;
@@ -253,6 +277,7 @@ const App: React.FC = () => {
     Communication: 'Messagerie',
     Événements: 'Gestion des Événements',
     Galerie: 'Galerie de Photos',
+    Live: 'Session Live',
     Documentation: 'Documentation',
     Paramètres: 'Paramètres',
   };
