@@ -155,7 +155,20 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
             {/* Year Statistics and Chart */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                     <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Répartition par Type de Contribution ({selectedYear})</h3>
+                     <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
+                        <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">Répartition par Type ({selectedYear})</h3>
+                        <select 
+                            id="year-select" 
+                            aria-label="Sélectionner une année"
+                            value={selectedYear}
+                            onChange={(e) => setSelectedYear(Number(e.target.value))}
+                            className="w-full sm:w-auto border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                        >
+                            {availableYears.map(year => (
+                                <option key={year} value={year}>{year}</option>
+                            ))}
+                        </select>
+                     </div>
                      {yearlyData.pieData.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
                             <PieChart>
@@ -188,26 +201,9 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
                          </div>
                      )}
                 </div>
-                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col justify-between">
-                    <div>
-                        <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Statistiques Annuelles</h3>
-                        <div className="mb-4">
-                            <label htmlFor="year-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Sélectionner une année
-                            </label>
-                            <select 
-                                id="year-select" 
-                                value={selectedYear}
-                                onChange={(e) => setSelectedYear(Number(e.target.value))}
-                                className="w-full border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
-                            >
-                                {availableYears.map(year => (
-                                    <option key={year} value={year}>{year}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-                    <div className="text-center bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col">
+                    <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Statistiques Annuelles</h3>
+                    <div className="text-center bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg flex-grow flex flex-col justify-center">
                         <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total des Contributions pour {selectedYear}</p>
                         <p className="text-3xl font-bold text-gray-800 dark:text-gray-100 mt-1">
                             {yearlyData.totalAmount.toLocaleString('fr-FR')} CFA
