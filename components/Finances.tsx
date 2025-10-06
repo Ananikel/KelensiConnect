@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+
+import React, { useState, useMemo, useEffect } from 'react';
 import { Contribution, Member } from '../types';
 import SearchIcon from './icons/SearchIcon';
 import PlusIcon from './icons/PlusIcon';
 import CloseIcon from './icons/CloseIcon';
 import DownloadIcon from './icons/DownloadIcon';
-
+import Pagination from './Pagination';
 
 interface FinancesProps {
     members: Member[];
@@ -12,11 +13,14 @@ interface FinancesProps {
     setContributions: React.Dispatch<React.SetStateAction<Contribution[]>>;
 }
 
+const ITEMS_PER_PAGE = 10;
+
 const Finances: React.FC<FinancesProps> = ({ members, contributions, setContributions }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('Tous');
     const [typeFilter, setTypeFilter] = useState('Tous');
     const [isModalOpen, setModalOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
 
     // Form state
     const [memberId, setMemberId] = useState<number | ''>('');
@@ -35,6 +39,17 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
         });
     }, [contributions, searchTerm, statusFilter, typeFilter]);
     
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, statusFilter, typeFilter]);
+
+    const paginatedContributions = useMemo(() => {
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        return filteredContributions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [filteredContributions, currentPage]);
+
+    const totalPages = Math.ceil(filteredContributions.length / ITEMS_PER_PAGE);
+
     const resetForm = () => {
         setMemberId('');
         setAmount('');
@@ -151,7 +166,7 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {filteredContributions.map((c: Contribution) => (
+                            {paginatedContributions.map((c: Contribution) => (
                                 <tr key={c.id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{c.memberName}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{c.amount.toLocaleString('fr-FR')} CFA</td>
@@ -174,6 +189,11 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
                         Aucune contribution trouvée.
                     </div>
                 )}
+                 <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                />
             </div>
             
             {/* Add Contribution Modal */}

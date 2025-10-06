@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Member } from '../types';
 import SearchIcon from './icons/SearchIcon';
@@ -6,11 +7,14 @@ import CloseIcon from './icons/CloseIcon';
 import EditIcon from './icons/EditIcon';
 import DeleteIcon from './icons/DeleteIcon';
 import DownloadIcon from './icons/DownloadIcon';
+import Pagination from './Pagination';
 
 interface MembersProps {
     members: Member[];
     setMembers: React.Dispatch<React.SetStateAction<Member[]>>;
 }
+
+const ITEMS_PER_PAGE = 8;
 
 const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -18,6 +22,7 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
     const [isAddModalOpen, setAddModalOpen] = useState(false);
     const [isAvatarModalOpen, setAvatarModalOpen] = useState(false);
     const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
 
     // Edit and Delete state
     const [editingMember, setEditingMember] = useState<Member | null>(null);
@@ -44,6 +49,17 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
             return matchesSearch && matchesStatus;
         });
     }, [members, searchTerm, statusFilter]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, statusFilter]);
+
+    const paginatedMembers = useMemo(() => {
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        return filteredMembers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [filteredMembers, currentPage]);
+
+    const totalPages = Math.ceil(filteredMembers.length / ITEMS_PER_PAGE);
     
     const descendances = useMemo(() => [...new Set(members.map(m => m.descendance))], [members]);
 
@@ -249,7 +265,7 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {filteredMembers.map((member: Member) => (
+                            {paginatedMembers.map((member: Member) => (
                                 <tr key={member.id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center">
@@ -298,6 +314,11 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                         Aucun membre trouvé.
                     </div>
                 )}
+                 <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                />
             </div>
             
             {/* Add Member Modal */}

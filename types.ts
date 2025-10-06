@@ -29,3 +29,8 @@ export interface Announcement {
     content: string;
     date: string;
 }
+
+export interface UserProfile {
+  name: string;
+  avatar: string;
+}
