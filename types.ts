@@ -1,4 +1,4 @@
-export type Page = 'Dashboard' | 'Membres' | 'Finances' | 'Communication' | 'Événements' | 'Galerie' | 'Paramètres';
+export type Page = 'Dashboard' | 'Membres' | 'Finances' | 'Communication' | 'Événements' | 'Galerie' | 'Documentation' | 'Paramètres';
 
 export interface Member {
   id: number;

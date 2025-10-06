@@ -7,6 +7,7 @@ import Finances from './components/Finances';
 import Communication from './components/Communication';
 import Events from './components/Events';
 import Galerie from './components/Galerie';
+import Documentation from './components/Documentation';
 import Settings from './components/Settings';
 import Header from './components/Header';
 import Login from './components/Login';
@@ -165,6 +166,8 @@ const App: React.FC = () => {
         return <Events events={events} setEvents={setEvents} members={members} />;
        case 'Galerie':
         return <Galerie photos={photos} setPhotos={setPhotos} />;
+       case 'Documentation':
+        return <Documentation />;
        case 'Paramètres':
         return <Settings />;
       default:
@@ -179,6 +182,7 @@ const App: React.FC = () => {
     Communication: 'Messagerie',
     Événements: 'Gestion des Événements',
     Galerie: 'Galerie de Photos',
+    Documentation: 'Documentation',
     Paramètres: 'Paramètres',
   };
 
