@@ -206,7 +206,7 @@ const EventModal: React.FC<{ event: AppEvent | null; onSave: (data: Omit<AppEven
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
-                            <input type="date" id="date" value={date} onChange={e => setDate(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required />
+                            <input type="date" id="date" value={date} onChange={e => setDate(e.target.value)} min="2022-01-01" className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required />
                         </div>
                          <div>
                             <label htmlFor="time" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Heure</label>
