@@ -203,7 +203,8 @@ Fonctionnalités principales :
 - Suivi financier : Enregistrez les cotisations et les dons.
 - Communication : Messagerie interne pour rester en contact.
 
-Explorez les différentes sections pour en savoir plus !`
+Explorez les différentes sections pour en savoir plus !`,
+        attachments: [],
     },
     {
         id: 'add-member',
@@ -219,7 +220,8 @@ Explorez les différentes sections pour en savoir plus !`
    - Vous pouvez prendre une photo avec la webcam ou laisser l'avatar par défaut.
 4. Cliquez sur "Ajouter" pour sauvegarder le nouveau membre.
 
-Le membre apparaîtra immédiatement dans la liste.`
+Le membre apparaîtra immédiatement dans la liste.`,
+        attachments: [],
     },
     {
         id: 'manage-contributions',
@@ -239,7 +241,8 @@ Assigner un type à un membre :
 - Cochez les cases correspondant aux cotisations que ce membre doit payer.
 - Enregistrez les modifications.
 
-Une fois assignées, vous pourrez suivre les paiements effectifs dans la page "Finances".`
+Une fois assignées, vous pourrez suivre les paiements effectifs dans la page "Finances".`,
+        attachments: [],
     },
     {
         id: 'faq-1',
@@ -251,6 +254,7 @@ Une fois assignées, vous pourrez suivre les paiements effectifs dans la page "F
 - Membres : Sur la page "Membres", cliquez sur le bouton "Exporter" pour télécharger la liste complète au format CSV, compatible avec Excel et Google Sheets.
 - Finances : Sur la page "Finances", le bouton "Exporter" vous permet de télécharger un rapport de toutes les transactions financières enregistrées.
 
-Assurez-vous d'avoir les permissions nécessaires (rôle Administrateur ou Trésorier) pour accéder à ces fonctionnalités.`
+Assurez-vous d'avoir les permissions nécessaires (rôle Administrateur ou Trésorier) pour accéder à ces fonctionnalités.`,
+        attachments: [],
     }
 ];

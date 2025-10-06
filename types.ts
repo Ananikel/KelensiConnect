@@ -110,4 +110,5 @@ export interface DocArticle {
   content: string;
   category: string;
   lastModified: string;
+  attachments?: Attachment[];
 }

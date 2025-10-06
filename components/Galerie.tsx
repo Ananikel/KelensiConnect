@@ -428,15 +428,23 @@ const PhotoPreviewModal: React.FC<{ photos: Photo[]; startIndex: number; onClose
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-80 flex flex-col items-center justify-center z-[60] p-4" onClick={onClose}>
-            <button onClick={onClose} className="absolute top-4 right-4 text-white p-2 rounded-full bg-black/30 hover:bg-black/50 transition-colors" aria-label="Fermer"><CloseIcon/></button>
+            <button 
+                onClick={(e) => { e.stopPropagation(); onClose(); }} 
+                className="absolute top-4 right-4 z-20 text-white p-2 bg-black/50 rounded-full hover:bg-black/70 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black/50" 
+                aria-label="Fermer"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
             
             <div className="relative w-full h-full flex items-center justify-center" onClick={e => e.stopPropagation()}>
                 {photos.length > 1 && (
                      <>
-                        <button onClick={onPrev} className="absolute left-4 text-white bg-black/30 p-3 rounded-full hover:bg-black/50 transition-colors focus:outline-none focus:ring-2 focus:ring-white" aria-label="Précédent">
+                        <button onClick={onPrev} className="absolute left-4 z-10 text-white bg-black/30 p-3 rounded-full hover:bg-black/50 transition-colors focus:outline-none focus:ring-2 focus:ring-white" aria-label="Précédent">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                         </button>
-                        <button onClick={onNext} className="absolute right-4 text-white bg-black/30 p-3 rounded-full hover:bg-black/50 transition-colors focus:outline-none focus:ring-2 focus:ring-white" aria-label="Suivant">
+                        <button onClick={onNext} className="absolute right-4 z-10 text-white bg-black/30 p-3 rounded-full hover:bg-black/50 transition-colors focus:outline-none focus:ring-2 focus:ring-white" aria-label="Suivant">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                         </button>
                      </>
