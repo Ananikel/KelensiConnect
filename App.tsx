@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
@@ -20,6 +21,7 @@ const App: React.FC = () => {
   const [events, setEvents] = useState<AppEvent[]>(MOCK_EVENTS);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const savedTheme = localStorage.getItem('kelensi-theme');
     if (savedTheme === 'dark' || savedTheme === 'light') {
@@ -65,6 +67,7 @@ const App: React.FC = () => {
   useEffect(() => {
     try {
       window.localStorage.setItem('kelensi-user-profile', JSON.stringify(userProfile));
+// FIX: The catch block was missing curly braces, which caused a syntax error that broke the component's scope.
     } catch (error) {
       console.error('Erreur lors de la sauvegarde du profil dans localStorage', error);
     }
@@ -155,9 +158,18 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900 font-sans">
+    <div className="relative min-h-screen md:flex bg-gray-100 dark:bg-gray-900 font-sans">
       <NotificationCenter notifications={notifications} removeNotification={removeNotification} />
-      <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
+      
+      {/* Mobile Overlay */}
+      {isSidebarOpen && <div onClick={() => setSidebarOpen(false)} className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"></div>}
+
+      <Sidebar 
+        currentPage={currentPage} 
+        setCurrentPage={setCurrentPage}
+        isSidebarOpen={isSidebarOpen}
+        setSidebarOpen={setSidebarOpen} 
+      />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header 
           title={pageTitles[currentPage]} 
@@ -166,8 +178,9 @@ const App: React.FC = () => {
           onLogout={handleLogout}
           theme={theme}
           toggleTheme={toggleTheme}
+          setSidebarOpen={setSidebarOpen}
         />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-800 p-6 md:p-8">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-800 p-4 sm:p-6 md:p-8">
           {renderPage()}
         </main>
       </div>

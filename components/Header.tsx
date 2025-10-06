@@ -7,6 +7,7 @@ import UserIcon from './icons/UserIcon';
 import ProfileModal from './ProfileModal';
 import SunIcon from './icons/SunIcon';
 import MoonIcon from './icons/MoonIcon';
+import MenuIcon from './icons/MenuIcon';
 
 interface HeaderProps {
     title: string;
@@ -15,9 +16,10 @@ interface HeaderProps {
     onLogout: () => void;
     theme: 'light' | 'dark';
     toggleTheme: () => void;
+    setSidebarOpen: (isOpen: boolean) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ title, userProfile, setUserProfile, onLogout, theme, toggleTheme }) => {
+const Header: React.FC<HeaderProps> = ({ title, userProfile, setUserProfile, onLogout, theme, toggleTheme, setSidebarOpen }) => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [isProfileModalOpen, setProfileModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -35,14 +37,23 @@ const Header: React.FC<HeaderProps> = ({ title, userProfile, setUserProfile, onL
 
   return (
     <>
-        <header className="bg-white dark:bg-gray-800 shadow-sm h-20 flex items-center justify-between px-6 md:px-8 z-10 flex-shrink-0">
-          <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">{title}</h2>
-          <div className="flex items-center space-x-4">
+        <header className="bg-white dark:bg-gray-800 shadow-sm h-20 flex items-center justify-between px-4 sm:px-6 md:px-8 z-10 flex-shrink-0">
+          <div className="flex items-center">
+            <button
+                onClick={() => setSidebarOpen(true)}
+                className="md:hidden p-2 -ml-2 mr-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                aria-label="Ouvrir le menu"
+            >
+                <MenuIcon />
+            </button>
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 dark:text-gray-200 truncate">{title}</h2>
+          </div>
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <div className="relative hidden md:block">
               <input 
                 type="text" 
                 placeholder="Rechercher..." 
-                className="w-64 pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-200 dark:placeholder-gray-400"
+                className="w-48 lg:w-64 pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-200 dark:placeholder-gray-400"
               />
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <SearchIcon />

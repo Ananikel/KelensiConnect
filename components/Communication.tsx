@@ -9,6 +9,7 @@ import UsersIcon from './icons/UsersIcon';
 import VideoIcon from './icons/VideoIcon';
 import PhoneIcon from './icons/PhoneIcon';
 import VideoCallModal from './VideoCallModal';
+import ArrowLeftIcon from './icons/ArrowLeftIcon';
 
 interface CommunicationProps {
     members: Member[];
@@ -50,6 +51,7 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
     [members, selectedId]);
 
     const conversation = useMemo(() => {
+        if (selectedId === null) return [];
         const targetReceiverId = selectedId === 0 ? 0 : selectedId;
         return messages.filter(msg => 
             (msg.senderId === 'admin' && msg.receiverId === targetReceiverId) ||
@@ -128,9 +130,9 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
 
     return (
         <>
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md flex h-[calc(100vh-10rem)]">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md flex h-[calc(100vh-8.5rem)] md:h-[calc(100vh-10rem)] overflow-hidden">
                 {/* Member List */}
-                <div className="w-1/3 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+                <div className={`w-full md:w-1/3 border-r border-gray-200 dark:border-gray-700 flex-col ${selectedId !== null ? 'hidden md:flex' : 'flex'}`}>
                     <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                          <div className="relative">
                             <input 
@@ -173,19 +175,22 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
                 </div>
 
                 {/* Chat Window */}
-                <div className="w-2/3 flex flex-col">
+                <div className={`w-full md:w-2/3 flex-col ${selectedId === null ? 'hidden md:flex' : 'flex'}`}>
                     {selectedId !== null ? (
                         <>
                             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-                                <div className="flex items-center">
-                                     <div className="w-12 h-12 rounded-full object-cover mr-4 flex items-center justify-center bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400">
+                                <div className="flex items-center min-w-0">
+                                     <button onClick={() => setSelectedId(null)} className="md:hidden p-2 -ml-2 mr-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full" aria-label="Retour à la liste">
+                                         <ArrowLeftIcon />
+                                     </button>
+                                     <div className="w-12 h-12 rounded-full object-cover mr-4 flex-shrink-0 items-center justify-center bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400">
                                         { selectedId === 0 
                                             ? <UsersIcon /> 
                                             : <img src={selectedMember?.avatar} alt={selectedMember?.name} className="w-12 h-12 rounded-full object-cover"/>
                                         }
                                      </div>
-                                     <div>
-                                        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">{selectedId === 0 ? 'Discussion Générale' : selectedMember?.name}</h3>
+                                     <div className="min-w-0">
+                                        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 truncate">{selectedId === 0 ? 'Discussion Générale' : selectedMember?.name}</h3>
                                         { selectedId !== 0 && selectedMember &&
                                             <p className={`text-sm ${selectedMember.status === 'Actif' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                                                 {selectedMember.status}
@@ -193,14 +198,14 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
                                         }
                                      </div>
                                 </div>
-                                <div>
+                                <div className="flex-shrink-0">
                                     {selectedId === 0 ? (
                                         <button onClick={() => setIsCalling(true)} className="flex items-center space-x-2 px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" aria-label="Démarrer un appel de groupe">
                                             <VideoIcon />
-                                            <span>Appel de groupe</span>
+                                            <span className="hidden sm:inline">Appel de groupe</span>
                                         </button>
                                     ) : (
-                                        <div className="flex items-center space-x-4">
+                                        <div className="flex items-center space-x-2 sm:space-x-4">
                                             <button onClick={() => setIsCalling(true)} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label="Démarrer un appel audio">
                                                 <PhoneIcon />
                                             </button>
@@ -221,7 +226,7 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
                                                ? 'bg-indigo-600 text-white rounded-br-none' 
                                                : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-none'
                                            }`}>
-                                               { msg.text && <p>{msg.text}</p> }
+                                               { msg.text && <p className="break-words">{msg.text}</p> }
                                                { msg.attachment && <MessageAttachment attachment={msg.attachment} /> }
                                                <p className={`text-xs mt-1 ${
                                                    msg.senderId === 'admin' ? 'text-indigo-200' : 'text-gray-500 dark:text-gray-400'
@@ -236,7 +241,7 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
                             </div>
 
                             <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-                                <form onSubmit={handleSendMessage} className="flex items-center space-x-4">
+                                <form onSubmit={handleSendMessage} className="flex items-center space-x-2 sm:space-x-4">
                                     <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
                                     <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label="Joindre un fichier">
                                         <PaperclipIcon />
@@ -256,7 +261,7 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
                             </div>
                         </>
                     ) : (
-                        <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400 text-center">
+                        <div className="flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400 text-center p-4">
                             <div>
                                 <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                     <path vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
