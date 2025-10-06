@@ -1,25 +1,27 @@
 import pool from './db';
-import { MOCK_MEMBERS, MOCK_CONTRIBUTIONS, MOCK_MESSAGES, MOCK_EVENTS, MOCK_PHOTOS, MOCK_ROLES, MOCK_PERMISSIONS, MOCK_CONTRIBUTION_TYPES, MOCK_DOC_ARTICLES } from './constants';
+import { MOCK_MEMBERS, MOCK_CONTRIBUTIONS, MOCK_EVENTS, MOCK_PHOTOS, MOCK_ROLES, MOCK_PERMISSIONS, MOCK_CONTRIBUTION_TYPES, MOCK_DOC_ARTICLES } from './constants';
 
 const seedDatabase = async () => {
+  const client = await pool.connect();
   try {
+    await client.query('BEGIN');
     console.log('Début du seeding de la base de données...');
 
     // Drop tables in reverse order of dependency
-    await pool.query('DROP TABLE IF EXISTS rsvps CASCADE;');
-    await pool.query('DROP TABLE IF EXISTS contributions CASCADE;');
-    await pool.query('DROP TABLE IF EXISTS messages CASCADE;');
-    await pool.query('DROP TABLE IF EXISTS photos CASCADE;');
-    await pool.query('DROP TABLE IF EXISTS events CASCADE;');
-    await pool.query('DROP TABLE IF EXISTS doc_articles CASCADE;');
-    await pool.query('DROP TABLE IF EXISTS members CASCADE;');
-    await pool.query('DROP TABLE IF EXISTS roles CASCADE;');
-    await pool.query('DROP TABLE IF EXISTS permissions CASCADE;');
-    await pool.query('DROP TABLE IF EXISTS contribution_types CASCADE;');
+    await client.query('DROP TABLE IF EXISTS rsvps CASCADE;');
+    await client.query('DROP TABLE IF EXISTS contributions CASCADE;');
+    await client.query('DROP TABLE IF EXISTS messages CASCADE;');
+    await client.query('DROP TABLE IF EXISTS photos CASCADE;');
+    await client.query('DROP TABLE IF EXISTS events CASCADE;');
+    await client.query('DROP TABLE IF EXISTS doc_articles CASCADE;');
+    await client.query('DROP TABLE IF EXISTS members CASCADE;');
+    await client.query('DROP TABLE IF EXISTS roles CASCADE;');
+    await client.query('DROP TABLE IF EXISTS permissions CASCADE;');
+    await client.query('DROP TABLE IF EXISTS contribution_types CASCADE;');
     console.log('Anciennes tables supprimées.');
 
     // Create tables
-    await pool.query(`
+    await client.query(`
       CREATE TABLE permissions (
         id VARCHAR(50) PRIMARY KEY,
         category VARCHAR(50) NOT NULL,
@@ -58,7 +60,7 @@ const seedDatabase = async () => {
       
       CREATE TABLE contributions (
         id SERIAL PRIMARY KEY,
-        member_id INTEGER REFERENCES members(id) ON DELETE CASCADE,
+        member_id INTEGER REFERENCES members(id) ON DELETE SET NULL,
         amount NUMERIC NOT NULL,
         date DATE NOT NULL,
         type VARCHAR(50) NOT NULL,
@@ -110,58 +112,56 @@ const seedDatabase = async () => {
     `);
     console.log('Tables créées avec succès.');
     
-    // Insert data
-    await Promise.all(MOCK_PERMISSIONS.map(p => pool.query('INSERT INTO permissions (id, category, name, description) VALUES ($1, $2, $3, $4)', [p.id, p.category, p.name, p.description])));
-    await Promise.all(MOCK_ROLES.map(r => pool.query('INSERT INTO roles (id, name, description, permission_ids) VALUES ($1, $2, $3, $4)', [r.id, r.name, r.description, r.permissionIds])));
-    await Promise.all(MOCK_CONTRIBUTION_TYPES.map(ct => pool.query('INSERT INTO contribution_types (id, name, amount, frequency, description) VALUES ($1, $2, $3, $4, $5)', [ct.id, ct.name, ct.amount, ct.frequency, ct.description])));
+    // Insert static data
+    for (const p of MOCK_PERMISSIONS) await client.query('INSERT INTO permissions (id, category, name, description) VALUES ($1, $2, $3, $4)', [p.id, p.category, p.name, p.description]);
+    for (const r of MOCK_ROLES) await client.query('INSERT INTO roles (id, name, description, permission_ids) VALUES ($1, $2, $3, $4)', [r.id, r.name, r.description, r.permissionIds]);
+    for (const ct of MOCK_CONTRIBUTION_TYPES) await client.query('INSERT INTO contribution_types (id, name, amount, frequency, description) VALUES ($1, $2, $3, $4, $5)', [ct.id, ct.name, ct.amount, ct.frequency, ct.description]);
     
-    // Insert members and get their new IDs
-    const memberIdMap = new Map<string, number>(); // Map email to new DB ID
-    let memberCounter = 1;
+    // Insert members and create a map from old mockId to new database ID
+    const memberIdMap = new Map<number, number>();
     for (const m of MOCK_MEMBERS) {
-      const res = await pool.query('INSERT INTO members (name, email, phone, join_date, birth_date, status, avatar, role_id, descendance, contribution_type_ids) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id', 
+      const res = await client.query(
+        'INSERT INTO members (name, email, phone, join_date, birth_date, status, avatar, role_id, descendance, contribution_type_ids) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id', 
         [m.name, m.email, m.phone, m.joinDate, m.birthDate, m.status, m.avatar, m.roleId, m.descendance, m.contributionTypeIds]
       );
-      memberIdMap.set(m.email, res.rows[0].id);
-      
-      // Also map old mock ID to new DB ID for other tables
-      memberIdMap.set(`mockId-${memberCounter}`, res.rows[0].id);
-      memberCounter++;
+      memberIdMap.set(m.mockId, res.rows[0].id);
     }
 
-    await Promise.all(MOCK_CONTRIBUTIONS.map(c => {
-        const newMemberId = memberIdMap.get(`mockId-${c.memberId}`);
+    // Insert contributions using the new member IDs
+    for (const c of MOCK_CONTRIBUTIONS) {
+        const newMemberId = memberIdMap.get(c.memberId);
         if(newMemberId) {
-            return pool.query('INSERT INTO contributions (member_id, amount, date, type, status) VALUES ($1, $2, $3, $4, $5)', [newMemberId, c.amount, c.date, c.type, c.status]);
+            await client.query('INSERT INTO contributions (member_id, amount, date, type, status) VALUES ($1, $2, $3, $4, $5)', [newMemberId, c.amount, c.date, c.type, c.status]);
         }
-    }));
+    }
     
-    await Promise.all(MOCK_EVENTS.map(async (e) => {
-        const res = await pool.query('INSERT INTO events (title, date, time, location, description) VALUES ($1, $2, $3, $4, $5) RETURNING id', [e.title, e.date, e.time, e.location, e.description]);
+    // Insert events and their RSVPs
+    for (const e of MOCK_EVENTS) {
+        const res = await client.query('INSERT INTO events (title, date, time, location, description) VALUES ($1, $2, $3, $4, $5) RETURNING id', [e.title, e.date, e.time, e.location, e.description]);
         const eventId = res.rows[0].id;
         if (e.rsvps) {
-            await Promise.all(e.rsvps.map(rsvp => {
-                const newMemberId = memberIdMap.get(`mockId-${rsvp.memberId}`);
+            for (const rsvp of e.rsvps) {
+                const newMemberId = memberIdMap.get(rsvp.memberId);
                 if (newMemberId) {
-                    return pool.query('INSERT INTO rsvps (event_id, member_id, status) VALUES ($1, $2, $3)', [eventId, newMemberId, rsvp.status]);
+                    await client.query('INSERT INTO rsvps (event_id, member_id, status) VALUES ($1, $2, $3)', [eventId, newMemberId, rsvp.status]);
                 }
-            }));
+            }
         }
-    }));
+    }
 
-    await Promise.all(MOCK_PHOTOS.map(p => pool.query('INSERT INTO photos (url, title, description, upload_date) VALUES ($1, $2, $3, $4)', [p.url, p.title, p.description, p.uploadDate])));
-    await Promise.all(MOCK_DOC_ARTICLES.map(d => pool.query('INSERT INTO doc_articles (id, title, content, category, last_modified, attachments) VALUES ($1, $2, $3, $4, $5, $6)', [d.id, d.title, d.content, d.category, d.lastModified, JSON.stringify(d.attachments || [])])));
+    for (const p of MOCK_PHOTOS) await client.query('INSERT INTO photos (url, title, description, upload_date) VALUES ($1, $2, $3, $4)', [p.url, p.title, p.description, p.uploadDate]);
+    for (const d of MOCK_DOC_ARTICLES) await client.query('INSERT INTO doc_articles (id, title, content, category, last_modified, attachments) VALUES ($1, $2, $3, $4, $5, $6)', [d.id, d.title, d.content, d.category, d.lastModified, JSON.stringify(d.attachments || [])]);
     
-    // Note: MOCK_MESSAGES seed logic would be more complex due to sender/receiver mapping, skipping for brevity.
-
+    await client.query('COMMIT');
     console.log('Données insérées avec succès.');
 
   } catch (error) {
-    console.error('Erreur durant le seeding :', error);
+    await client.query('ROLLBACK');
+    console.error('Erreur durant le seeding, rollback effectué :', error);
   } finally {
-    await pool.end();
-    console.log('Connexion à la base de données fermée.');
+    client.release();
+    console.log('Client de base de données libéré.');
   }
 };
 
-seedDatabase();
+seedDatabase().finally(() => pool.end());

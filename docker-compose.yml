@@ -28,19 +28,20 @@ services:
       db:
         condition: service_healthy
     environment:
+      # These are passed from the .env file at the root
       DATABASE_URL: ${DATABASE_URL}
-      PORT: ${BACKEND_PORT:-5000}
-      API_KEY: ${API_KEY} # For Gemini API
+      PORT: 5000 # The internal port is fixed to what the app listens on
+      API_KEY: ${API_KEY}
     ports:
       - "${BACKEND_PORT:-5000}:5000"
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-    command: npm run dev
+    # No volumes or command override for production build
 
   frontend:
     build:
       context: ./frontend
+      args:
+        # Pass the API_KEY from the root .env file as a build argument
+        VITE_API_KEY: ${API_KEY}
     container_name: kelensi-frontend
     restart: always
     ports:

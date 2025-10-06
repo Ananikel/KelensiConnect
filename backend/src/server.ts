@@ -9,7 +9,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // Increase limit for attachments
 
 // Endpoint de test
 app.get('/api', (req, res) => {
@@ -121,7 +121,50 @@ app.delete('/api/members/:id', async (req, res) => {
     }
 });
 
-// Add other endpoints for finances, events, etc. following the same pattern.
+app.post('/api/contributions', async (req, res) => {
+    try {
+        const { memberId, amount, date, type, status } = req.body;
+        const result = await pool.query(
+            'INSERT INTO contributions (member_id, amount, date, type, status) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+            [memberId, amount, date, type, status]
+        );
+        
+        const newContribId = result.rows[0].id;
+        const finalResult = await pool.query(
+            'SELECT c.*, m.name as member_name FROM contributions c JOIN members m ON c.member_id = m.id WHERE c.id = $1',
+            [newContribId]
+        );
+        const newContribution = finalResult.rows[0];
+        const { member_name, ...rest } = newContribution;
+
+        res.status(201).json({ ...rest, memberName: member_name });
+    } catch (err) {
+        console.error("Erreur lors de l'ajout de la contribution", err);
+        res.status(500).json({ error: "Erreur serveur lors de l'ajout de la contribution" });
+    }
+});
+
+// Messages
+app.post('/api/messages', async (req, res) => {
+    try {
+        const { senderId, receiverId, text, attachment } = req.body;
+        
+        // In a real app, you would validate senderId against the authenticated user
+        const sender = 'admin'; // For now, assume admin is sending
+
+        const result = await pool.query(
+            'INSERT INTO messages (sender_id, receiver_id, text, attachment, timestamp, status) VALUES ($1, $2, $3, $4, NOW(), $5) RETURNING *',
+            [sender, receiverId, text, attachment || null, 'sent']
+        );
+        res.status(201).json(result.rows[0]);
+    } catch (err) {
+        console.error("Erreur lors de l'ajout du message", err);
+        res.status(500).json({ error: "Erreur serveur lors de l'ajout du message" });
+    }
+});
+
+
+// Add other endpoints for events, etc. following the same pattern.
 
 app.listen(port, () => {
   console.log(`Le serveur backend est en cours d'exécution sur http://localhost:${port}`);

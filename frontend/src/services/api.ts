@@ -1,54 +1,57 @@
-import type { AllDataResponse, Member } from './types';
+import type { AllDataResponse, Member, Contribution, ChatMessage } from '../types';
 
-// Utilisation d'un chemin relatif pour que le proxy Nginx en production fonctionne
+// L'URL de base sera redirigée par Nginx en production (Docker) ou par le serveur de dev de Vite
 const API_BASE_URL = '/api';
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Erreur de communication avec le serveur' }));
-    throw new Error(errorData.message || `Erreur ${response.status}`);
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Erreur de communication avec le serveur' }));
+      throw new Error(errorData.error || `Erreur ${response.status}`);
+    }
+
+    if (response.status === 204) { // No Content
+      return null as T;
+    }
+    return response.json();
+  } catch (error) {
+    console.error(`API request failed: ${options.method || 'GET'} ${endpoint}`, error);
+    throw error;
   }
-  if (response.status === 204) { // No Content
-    return null as T;
-  }
-  return response.json();
 }
 
 export const api = {
-    // Fetch all initial data
-    // FIX: Typed the return value of getAllData to ensure consuming components know the data shape.
-    getAllData: async (): Promise<AllDataResponse> => {
-        return request('/all-data');
-    },
+    getAllData: (): Promise<AllDataResponse> => request('/all-data'),
 
     // Members
-    // FIX: Typed the parameters and return value for addMember.
-    addMember: async (memberData: Omit<Member, 'id'>): Promise<Member> => {
-        return request('/members', {
-            method: 'POST',
-            body: JSON.stringify(memberData),
-        });
-    },
-    // FIX: Typed the parameters and return value for updateMember.
-    updateMember: async (memberData: Member): Promise<Member> => {
-        return request(`/members/${memberData.id}`, {
-            method: 'PUT',
-            body: JSON.stringify(memberData),
-        });
-    },
-    // FIX: Typed the return value for deleteMember.
-    deleteMember: async (memberId: number): Promise<null> => {
-        return request(`/members/${memberId}`, {
-            method: 'DELETE',
-        });
-    },
+    addMember: (memberData: Omit<Member, 'id'>): Promise<Member> => request('/members', {
+        method: 'POST',
+        body: JSON.stringify(memberData),
+    }),
+    updateMember: (memberData: Member): Promise<Member> => request(`/members/${memberData.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(memberData),
+    }),
+    deleteMember: (memberId: number): Promise<void> => request(`/members/${memberId}`, {
+        method: 'DELETE',
+    }),
 
-    // Add other API functions for other modules (Finances, Events, etc.) here...
+    addContribution: (contributionData: Omit<Contribution, 'id' | 'memberName'>): Promise<Contribution> => request('/contributions', {
+        method: 'POST',
+        body: JSON.stringify(contributionData),
+    }),
+
+    // Messages
+    addMessage: (messageData: Omit<ChatMessage, 'id' | 'timestamp' | 'status'>): Promise<ChatMessage> => request('/messages', {
+        method: 'POST',
+        body: JSON.stringify(messageData),
+    }),
 };
