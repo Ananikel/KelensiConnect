@@ -5,6 +5,7 @@ import MembersIcon from './icons/MembersIcon';
 import FinancesIcon from './icons/FinancesIcon';
 import CommunicationIcon from './icons/CommunicationIcon';
 import EventsIcon from './icons/EventsIcon';
+import SettingsIcon from './icons/SettingsIcon';
 
 interface SidebarProps {
   currentPage: Page;
@@ -19,6 +20,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage }) => {
     { name: 'Finances', icon: <FinancesIcon /> },
     { name: 'Événements', icon: <EventsIcon /> },
     { name: 'Communication', icon: <CommunicationIcon /> },
+    { name: 'Paramètres', icon: <SettingsIcon /> },
   ];
 
   return (
