@@ -24,8 +24,8 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage }) => {
   ];
 
   return (
-    <div className="w-64 bg-white text-gray-800 flex flex-col shadow-lg">
-      <div className="flex items-center justify-center h-20 border-b border-gray-200">
+    <div className="w-64 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 flex flex-col shadow-lg">
+      <div className="flex items-center justify-center h-20 border-b border-gray-200 dark:border-gray-700">
         <h1 className="text-2xl font-bold text-indigo-600">KelensiConnect</h1>
       </div>
       <nav className="flex-1 px-4 py-6">
@@ -41,7 +41,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage }) => {
                 className={`flex items-center p-3 rounded-lg transition-colors duration-200 ${
                   currentPage === item.name
                     ? 'bg-indigo-600 text-white shadow-md'
-                    : 'text-gray-600 hover:bg-indigo-50 hover:text-indigo-600'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400'
                 }`}
               >
                 <span className="w-6 h-6 mr-3">{item.icon}</span>
@@ -51,8 +51,8 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage }) => {
           ))}
         </ul>
       </nav>
-      <div className="p-4 border-t border-gray-200">
-         <p className="text-xs text-gray-400 text-center">&copy; 2024 KelensiConnect. Tous droits réservés.</p>
+      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+         <p className="text-xs text-gray-400 dark:text-gray-500 text-center">&copy; 2024 KelensiConnect. Tous droits réservés.</p>
       </div>
     </div>
   );

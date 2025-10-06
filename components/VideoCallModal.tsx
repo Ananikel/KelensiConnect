@@ -74,7 +74,7 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({ isGroupCall, targetMemb
     const callTitle = isGroupCall ? "Appel de Groupe" : `Appel avec ${targetMember?.name}`;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex flex-col items-center justify-center z-50 text-white">
+        <div className="fixed inset-0 bg-gray-900 flex flex-col items-center justify-center z-50 text-white">
             {/* Remote Video Area */}
             <div className="relative w-full h-full flex items-center justify-center">
                  <div className="absolute top-5 left-5 text-lg z-10">
@@ -91,7 +91,7 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({ isGroupCall, targetMemb
                          ))}
                      </div>
                 ) : (
-                    <div className="w-full h-full bg-gray-900 flex items-center justify-center">
+                    <div className="w-full h-full bg-black flex items-center justify-center">
                         <img src={targetMember?.avatar} alt={targetMember?.name} className="w-40 h-40 rounded-full object-cover opacity-50"/>
                     </div>
                 )}
@@ -108,7 +108,7 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({ isGroupCall, targetMemb
             </div>
 
             {/* Controls */}
-            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center space-x-4 bg-gray-800 bg-opacity-50 p-3 rounded-full z-20">
+            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center space-x-4 bg-gray-900/70 backdrop-blur-sm p-3 rounded-full z-20">
                 <button 
                     onClick={toggleMic} 
                     className={`p-3 rounded-full transition-colors ${isMicOn ? 'bg-gray-600 hover:bg-gray-500' : 'bg-red-600 hover:bg-red-500'}`}

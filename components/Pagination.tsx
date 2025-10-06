@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface PaginationProps {
@@ -57,7 +56,7 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
             <button
                 onClick={handlePrev}
                 disabled={currentPage === 1}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 Précédent
             </button>
@@ -71,27 +70,27 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
                             className={`px-3 py-1.5 text-sm font-medium rounded-md ${
                                 currentPage === num 
                                 ? 'bg-indigo-600 text-white' 
-                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
                             }`}
                         >
                             {num}
                         </button>
                     ) : (
-                        <span key={index} className="px-3 py-1.5 text-sm text-gray-500">
+                        <span key={index} className="px-3 py-1.5 text-sm text-gray-500 dark:text-gray-400">
                             {num}
                         </span>
                     )
                 ))}
             </div>
 
-            <span className="md:hidden text-sm text-gray-700">
+            <span className="md:hidden text-sm text-gray-700 dark:text-gray-300">
                 Page {currentPage} sur {totalPages}
             </span>
 
             <button
                 onClick={handleNext}
                 disabled={currentPage === totalPages}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 Suivant
             </button>

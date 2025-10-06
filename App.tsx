@@ -20,6 +20,26 @@ const App: React.FC = () => {
   const [events, setEvents] = useState<AppEvent[]>(MOCK_EVENTS);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const savedTheme = localStorage.getItem('kelensi-theme');
+    if (savedTheme === 'dark' || savedTheme === 'light') {
+        return savedTheme;
+    }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+
+  useEffect(() => {
+    if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('kelensi-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+      setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+  };
 
   const getInitialProfile = (): UserProfile => {
     try {
@@ -105,11 +125,11 @@ const App: React.FC = () => {
   const renderPage = () => {
     switch (currentPage) {
       case 'Dashboard':
-        return <Dashboard members={members} contributions={contributions} />;
+        return <Dashboard members={members} contributions={contributions} theme={theme} />;
       case 'Membres':
         return <Members members={members} setMembers={setMembers} />;
       case 'Finances':
-        return <Finances members={members} contributions={contributions} setContributions={setContributions} />;
+        return <Finances members={members} contributions={contributions} setContributions={setContributions} theme={theme} />;
       case 'Communication':
         return <Communication members={members} messages={messages} setMessages={setMessages} />;
        case 'Événements':
@@ -117,7 +137,7 @@ const App: React.FC = () => {
        case 'Paramètres':
         return <Settings />;
       default:
-        return <Dashboard members={members} contributions={contributions} />;
+        return <Dashboard members={members} contributions={contributions} theme={theme} />;
     }
   };
   
@@ -135,7 +155,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100 font-sans">
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-900 font-sans">
       <NotificationCenter notifications={notifications} removeNotification={removeNotification} />
       <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -143,9 +163,11 @@ const App: React.FC = () => {
           title={pageTitles[currentPage]} 
           userProfile={userProfile}
           setUserProfile={setUserProfile}
-          onLogout={handleLogout} 
+          onLogout={handleLogout}
+          theme={theme}
+          toggleTheme={toggleTheme}
         />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6 md:p-8">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-800 p-6 md:p-8">
           {renderPage()}
         </main>
       </div>

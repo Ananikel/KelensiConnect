@@ -11,6 +11,7 @@ interface FinancesProps {
     members: Member[];
     contributions: Contribution[];
     setContributions: React.Dispatch<React.SetStateAction<Contribution[]>>;
+    theme: 'light' | 'dark';
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -20,7 +21,7 @@ const COLORS = {
     'Événement': '#f59e0b', // Amber
 };
 
-const Finances: React.FC<FinancesProps> = ({ members, contributions, setContributions }) => {
+const Finances: React.FC<FinancesProps> = ({ members, contributions, setContributions, theme }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('Tous');
     const [typeFilter, setTypeFilter] = useState('Tous');
@@ -40,7 +41,6 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [type, setType] = useState<'Cotisation' | 'Don' | 'Événement'>('Cotisation');
     const [status, setStatus] = useState<'Payé' | 'En attente'>('Payé');
-
 
     const filteredContributions = useMemo(() => {
         return contributions.filter(c => {
@@ -79,6 +79,11 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
     }, [filteredContributions, currentPage]);
 
     const totalPages = Math.ceil(filteredContributions.length / ITEMS_PER_PAGE);
+    
+    const tooltipBg = theme === 'dark' ? 'rgba(31, 41, 55, 0.8)' : '#FFFFFF';
+    const legendColor = theme === 'dark' ? '#D1D5DB' : '#374151';
+    const gridColor = theme === 'dark' ? '#4B5563' : '#E5E7EB';
+
 
     const resetForm = () => {
         setMemberId('');
@@ -149,8 +154,8 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
         <div className="space-y-6">
             {/* Year Statistics and Chart */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
-                     <h3 className="text-lg font-semibold text-gray-700 mb-4">Répartition par Type de Contribution ({selectedYear})</h3>
+                <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                     <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Répartition par Type de Contribution ({selectedYear})</h3>
                      {yearlyData.pieData.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
                             <PieChart>
@@ -169,28 +174,32 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
                                         <Cell key={`cell-${entry.name}`} fill={COLORS[entry.name as keyof typeof COLORS]} />
                                     ))}
                                 </Pie>
-                                <Tooltip formatter={(value: number) => `${value.toLocaleString('fr-FR')} CFA`} />
-                                <Legend />
+                                <Tooltip 
+                                    formatter={(value: number) => `${value.toLocaleString('fr-FR')} CFA`}
+                                    contentStyle={{ backgroundColor: tooltipBg, border: `1px solid ${gridColor}` }}
+                                    labelStyle={{ color: legendColor }} 
+                                />
+                                <Legend wrapperStyle={{ color: legendColor }} />
                             </PieChart>
                         </ResponsiveContainer>
                      ) : (
-                         <div className="flex items-center justify-center h-[300px] text-gray-500">
+                         <div className="flex items-center justify-center h-[300px] text-gray-500 dark:text-gray-400">
                             Aucune donnée pour l'année {selectedYear}.
                          </div>
                      )}
                 </div>
-                 <div className="bg-white p-6 rounded-lg shadow-md flex flex-col justify-between">
+                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col justify-between">
                     <div>
-                        <h3 className="text-lg font-semibold text-gray-700 mb-4">Statistiques Annuelles</h3>
+                        <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Statistiques Annuelles</h3>
                         <div className="mb-4">
-                            <label htmlFor="year-select" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="year-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Sélectionner une année
                             </label>
                             <select 
                                 id="year-select" 
                                 value={selectedYear}
                                 onChange={(e) => setSelectedYear(Number(e.target.value))}
-                                className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
                             >
                                 {availableYears.map(year => (
                                     <option key={year} value={year}>{year}</option>
@@ -198,9 +207,9 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
                             </select>
                         </div>
                     </div>
-                    <div className="text-center bg-gray-50 p-4 rounded-lg">
-                        <p className="text-sm font-medium text-gray-500">Total des Contributions pour {selectedYear}</p>
-                        <p className="text-3xl font-bold text-gray-800 mt-1">
+                    <div className="text-center bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total des Contributions pour {selectedYear}</p>
+                        <p className="text-3xl font-bold text-gray-800 dark:text-gray-100 mt-1">
                             {yearlyData.totalAmount.toLocaleString('fr-FR')} CFA
                         </p>
                     </div>
@@ -208,7 +217,7 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
             </div>
 
             {/* Contributions Table */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
                 <div className="flex flex-col md:flex-row items-center justify-between mb-6 space-y-4 md:space-y-0">
                     <div className="relative w-full md:w-auto">
                         <input 
@@ -216,20 +225,20 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
                             placeholder="Rechercher par nom..." 
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full md:w-80 pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full md:w-80 pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
                         />
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <SearchIcon />
                         </div>
                     </div>
                     <div className="flex items-center space-x-2 md:space-x-4">
-                        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200">
                             <option value="Tous">Tous Types</option>
                             <option value="Cotisation">Cotisation</option>
                             <option value="Don">Don</option>
                             <option value="Événement">Événement</option>
                         </select>
-                         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200">
                             <option value="Tous">Tous Statuts</option>
                             <option value="Payé">Payé</option>
                             <option value="En attente">En attente</option>
@@ -246,26 +255,26 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
                 </div>
 
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead className="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Membre</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Membre</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Montant</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Statut</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             {paginatedContributions.map((c: Contribution) => (
-                                <tr key={c.id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{c.memberName}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{c.amount.toLocaleString('fr-FR')} CFA</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(c.date).toLocaleDateString('fr-FR')}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{c.type}</td>
+                                <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-200">{c.memberName}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-200">{c.amount.toLocaleString('fr-FR')} CFA</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{new Date(c.date).toLocaleDateString('fr-FR')}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{c.type}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                            c.status === 'Payé' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                                            c.status === 'Payé' ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300'
                                         }`}>
                                             {c.status}
                                         </span>
@@ -276,7 +285,7 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
                     </table>
                 </div>
                  {filteredContributions.length === 0 && (
-                    <div className="text-center py-10 text-gray-500">
+                    <div className="text-center py-10 text-gray-500 dark:text-gray-400">
                         Aucune contribution trouvée.
                     </div>
                 )}
@@ -290,46 +299,46 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
             {/* Add Contribution Modal */}
             {isModalOpen && (
                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-                        <div className="flex justify-between items-center p-4 border-b">
-                            <h3 className="text-lg font-semibold">Ajouter une Contribution</h3>
-                            <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600"><CloseIcon /></button>
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md">
+                        <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
+                            <h3 className="text-lg font-semibold dark:text-gray-200">Ajouter une Contribution</h3>
+                            <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"><CloseIcon /></button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
-                                <label htmlFor="memberId" className="block text-sm font-medium text-gray-700">Membre</label>
-                                <select id="memberId" value={memberId} onChange={e => setMemberId(Number(e.target.value))} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
+                                <label htmlFor="memberId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Membre</label>
+                                <select id="memberId" value={memberId} onChange={e => setMemberId(Number(e.target.value))} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required>
                                     <option value="" disabled>Sélectionner un membre</option>
                                     {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                                 </select>
                             </div>
                              <div>
-                                <label htmlFor="amount" className="block text-sm font-medium text-gray-700">Montant (CFA)</label>
-                                <input type="number" id="amount" value={amount} onChange={e => setAmount(Number(e.target.value))} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required />
+                                <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Montant (CFA)</label>
+                                <input type="number" id="amount" value={amount} onChange={e => setAmount(Number(e.target.value))} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required />
                             </div>
                             <div>
-                                <label htmlFor="date" className="block text-sm font-medium text-gray-700">Date</label>
-                                <input type="date" id="date" value={date} onChange={e => setDate(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required />
+                                <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
+                                <input type="date" id="date" value={date} onChange={e => setDate(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label htmlFor="type" className="block text-sm font-medium text-gray-700">Type</label>
-                                    <select id="type" value={type} onChange={e => setType(e.target.value as any)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
+                                    <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Type</label>
+                                    <select id="type" value={type} onChange={e => setType(e.target.value as any)} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required>
                                         <option>Cotisation</option>
                                         <option>Don</option>
                                         <option>Événement</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label htmlFor="status" className="block text-sm font-medium text-gray-700">Statut</label>
-                                    <select id="status" value={status} onChange={e => setStatus(e.target.value as any)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
+                                    <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Statut</label>
+                                    <select id="status" value={status} onChange={e => setStatus(e.target.value as any)} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required>
                                         <option>Payé</option>
                                         <option>En attente</option>
                                     </select>
                                 </div>
                             </div>
                             <div className="pt-4 flex justify-end">
-                                <button type="button" onClick={handleCloseModal} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md mr-2">Annuler</button>
+                                <button type="button" onClick={handleCloseModal} className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md mr-2">Annuler</button>
                                 <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md">Ajouter</button>
                             </div>
                         </form>

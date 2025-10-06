@@ -45,15 +45,15 @@ const NotificationToast: React.FC<NotificationToastProps> = ({ notification, onD
     const icon = icons[notification.type];
 
     return (
-        <div className={`bg-white shadow-lg rounded-lg p-4 flex items-start animate-fade-in-right border-l-4 border-${baseColor}-500`}>
-            <div className={`text-${baseColor}-500 mr-4 flex-shrink-0`}>
+        <div className={`bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 flex items-start animate-fade-in-right border-l-4 border-${baseColor}-500`}>
+            <div className={`text-${baseColor}-500 dark:text-${baseColor}-400 mr-4 flex-shrink-0`}>
                 {icon}
             </div>
             <div className="flex-grow">
-                <h4 className="font-bold text-gray-800">{notification.title}</h4>
-                <p className="text-sm text-gray-600">{notification.message}</p>
+                <h4 className="font-bold text-gray-800 dark:text-gray-200">{notification.title}</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{notification.message}</p>
             </div>
-            <button onClick={onDismiss} className="ml-4 text-gray-400 hover:text-gray-600 flex-shrink-0">
+            <button onClick={onDismiss} className="ml-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0">
                 <CloseIcon />
             </button>
              <style>{`

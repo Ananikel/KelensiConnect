@@ -21,15 +21,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100">
-            <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-lg">
+        <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+            <div className="w-full max-w-md p-8 space-y-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
                 <div className="text-center">
                     <h1 className="text-3xl font-bold text-indigo-600">KelensiConnect</h1>
-                    <p className="mt-2 text-gray-500">Connectez-vous à votre compte</p>
+                    <p className="mt-2 text-gray-500 dark:text-gray-400">Connectez-vous à votre compte</p>
                 </div>
                 <form className="space-y-6" onSubmit={handleSubmit}>
                     <div>
-                        <label htmlFor="email" className="text-sm font-medium text-gray-700">
+                        <label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                             Adresse Email
                         </label>
                         <input
@@ -40,14 +40,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                             required
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                            className="w-full px-3 py-2 mt-1 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
                             placeholder="you@example.com"
                         />
                     </div>
                     <div>
                         <label
                             htmlFor="password"
-                            className="text-sm font-medium text-gray-700"
+                            className="text-sm font-medium text-gray-700 dark:text-gray-300"
                         >
                             Mot de passe
                         </label>
@@ -59,13 +59,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                             required
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                            className="w-full px-3 py-2 mt-1 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
                             placeholder="********"
                         />
                     </div>
                     {error && <p className="text-sm text-red-600 text-center">{error}</p>}
                     
-                    <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-md text-sm text-indigo-700">
+                    <div className="p-3 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-500/50 rounded-md text-sm text-indigo-700 dark:text-indigo-300">
                         <p className="font-semibold">Données pour le test :</p>
                         <p><strong>Email :</strong> admin@kelensiconnect.com</p>
                         <p><strong>Mot de passe :</strong> password</p>

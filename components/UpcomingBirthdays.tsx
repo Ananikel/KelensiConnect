@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { Member } from '../types';
 import BirthdayIcon from './icons/BirthdayIcon';
@@ -37,12 +36,12 @@ const UpcomingBirthdays: React.FC<UpcomingBirthdaysProps> = ({ members }) => {
 
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
             <div className="flex items-center mb-4">
                 <div className="text-pink-500 mr-3">
                     <BirthdayIcon />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-700">Prochains Anniversaires</h3>
+                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">Prochains Anniversaires</h3>
             </div>
             <div className="space-y-4 max-h-[245px] overflow-y-auto pr-2">
                 {upcomingBirthdays.length > 0 ? (
@@ -51,19 +50,19 @@ const UpcomingBirthdays: React.FC<UpcomingBirthdaysProps> = ({ members }) => {
                             <div className="flex items-center">
                                 <img src={member.avatar} alt={member.name} className="w-10 h-10 rounded-full object-cover mr-4" />
                                 <div>
-                                    <p className="font-medium text-gray-800">{member.name}</p>
-                                    <p className="text-sm text-gray-500">Fête ses {member.age} ans</p>
+                                    <p className="font-medium text-gray-800 dark:text-gray-200">{member.name}</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Fête ses {member.age} ans</p>
                                 </div>
                             </div>
                             <div className="text-right">
-                                <p className="font-semibold text-pink-600">
+                                <p className="font-semibold text-pink-600 dark:text-pink-400">
                                     {member.nextBirthday.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
                                 </p>
                             </div>
                         </div>
                     ))
                 ) : (
-                    <div className="text-center py-10 text-gray-500">
+                    <div className="text-center py-10 text-gray-500 dark:text-gray-400">
                         <p>Aucun anniversaire à venir dans les 30 prochains jours.</p>
                     </div>
                 )}

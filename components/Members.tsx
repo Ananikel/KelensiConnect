@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Member } from '../types';
 import SearchIcon from './icons/SearchIcon';
@@ -226,7 +225,7 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
 
     return (
         <>
-            <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
                 <div className="flex flex-col md:flex-row items-center justify-between mb-6 space-y-4 md:space-y-0">
                     <div className="relative w-full md:w-auto">
                         <input 
@@ -234,7 +233,7 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                             placeholder="Rechercher un membre..." 
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full md:w-80 pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full md:w-80 pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
                         />
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <SearchIcon />
@@ -244,7 +243,7 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
                         >
                             <option>Tous</option>
                             <option>Actif</option>
@@ -261,20 +260,20 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                 </div>
 
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead className="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descendance</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date d'adhésion</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Nom</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Descendance</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date d'adhésion</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Statut</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             {paginatedMembers.map((member: Member) => (
-                                <tr key={member.id} className="hover:bg-gray-50">
+                                <tr key={member.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center">
                                             <div className="flex-shrink-0 h-10 w-10">
@@ -286,28 +285,28 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                                                 />
                                             </div>
                                             <div className="ml-4">
-                                                <div className="text-sm font-medium text-gray-900">{member.name}</div>
+                                                <div className="text-sm font-medium text-gray-900 dark:text-gray-200">{member.name}</div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{member.email}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.descendance}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-200">{member.email}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{member.descendance}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                         {new Date(member.joinDate).toLocaleDateString('fr-FR')}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                            member.status === 'Actif' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                            member.status === 'Actif' ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300'
                                         }`}>
                                             {member.status}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div className="flex items-center space-x-4">
-                                            <button onClick={() => handleOpenEditModal(member)} className="text-indigo-600 hover:text-indigo-900" title="Modifier">
+                                            <button onClick={() => handleOpenEditModal(member)} className="text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400" title="Modifier">
                                                 <EditIcon />
                                             </button>
-                                            <button onClick={() => handleOpenDeleteModal(member)} className="text-red-600 hover:text-red-900" title="Supprimer">
+                                            <button onClick={() => handleOpenDeleteModal(member)} className="text-red-600 hover:text-red-900 dark:hover:text-red-400" title="Supprimer">
                                                 <DeleteIcon />
                                             </button>
                                         </div>
@@ -318,7 +317,7 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                     </table>
                 </div>
                  {filteredMembers.length === 0 && (
-                    <div className="text-center py-10 text-gray-500">
+                    <div className="text-center py-10 text-gray-500 dark:text-gray-400">
                         Aucun membre trouvé.
                     </div>
                 )}
@@ -332,41 +331,41 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
             {/* Add Member Modal */}
             {isAddModalOpen && (
                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-full overflow-y-auto">
-                        <div className="flex justify-between items-center p-4 border-b">
-                            <h3 className="text-lg font-semibold">Ajouter un nouveau membre</h3>
-                            <button onClick={handleCloseAddModal} className="text-gray-400 hover:text-gray-600">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg max-h-full overflow-y-auto">
+                        <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
+                            <h3 className="text-lg font-semibold dark:text-gray-200">Ajouter un nouveau membre</h3>
+                            <button onClick={handleCloseAddModal} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                                <CloseIcon />
                             </button>
                         </div>
                         <form onSubmit={handleAddMember} className="p-6 space-y-4">
                             <div>
-                                <label htmlFor="name" className="block text-sm font-medium text-gray-700">Nom complet</label>
-                                <input type="text" id="name" value={name} onChange={e => setName(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required />
+                                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nom complet</label>
+                                <input type="text" id="name" value={name} onChange={e => setName(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required />
                             </div>
                              <div>
-                                <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-                                <input type="email" id="email" value={email} onChange={e => setEmail(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required />
+                                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                                <input type="email" id="email" value={email} onChange={e => setEmail(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required />
                             </div>
                             <div>
-                                <label htmlFor="descendance" className="block text-sm font-medium text-gray-700">Descendance</label>
-                                <input list="descendances-list" id="descendance" value={descendance} onChange={e => setDescendance(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required />
+                                <label htmlFor="descendance" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Descendance</label>
+                                <input list="descendances-list" id="descendance" value={descendance} onChange={e => setDescendance(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required />
                                 <datalist id="descendances-list">
                                     {descendances.map(d => <option key={d} value={d} />)}
                                 </datalist>
                             </div>
                             {/* FIX: Add input field for birthDate. */}
                             <div>
-                                <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700">Date de naissance</label>
-                                <input type="date" id="birthDate" value={birthDate} onChange={e => setBirthDate(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required />
+                                <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date de naissance</label>
+                                <input type="date" id="birthDate" value={birthDate} onChange={e => setBirthDate(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Photo de profil</label>
-                                <div className="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-md">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Photo de profil</label>
+                                <div className="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-md">
                                     {capturedImage ? (
                                         <div className="text-center">
                                             <img src={capturedImage} alt="Captured" className="w-32 h-32 rounded-full object-cover mx-auto" />
-                                            <button type="button" onClick={handleRetake} className="mt-2 text-sm text-indigo-600 hover:text-indigo-800">Reprendre la photo</button>
+                                            <button type="button" onClick={handleRetake} className="mt-2 text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">Reprendre la photo</button>
                                         </div>
                                     ) : isCameraOn ? (
                                         <div className="text-center">
@@ -374,7 +373,7 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                                             <button type="button" onClick={handleCapture} className="px-4 py-2 bg-indigo-600 text-white rounded-md">Capturer</button>
                                         </div>
                                     ) : (
-                                        <button type="button" onClick={startCamera} className="flex flex-col items-center space-y-2 text-gray-500 hover:text-indigo-600">
+                                        <button type="button" onClick={startCamera} className="flex flex-col items-center space-y-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">
                                             <CameraIcon />
                                             <span>Prendre une photo</span>
                                         </button>
@@ -383,7 +382,7 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                                 </div>
                             </div>
                             <div className="pt-4 flex justify-end">
-                                <button type="button" onClick={handleCloseAddModal} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md mr-2">Annuler</button>
+                                <button type="button" onClick={handleCloseAddModal} className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md mr-2">Annuler</button>
                                 <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md">Ajouter</button>
                             </div>
                         </form>
@@ -394,48 +393,48 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
             {/* Edit Member Modal */}
             {editingMember && (
                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-full overflow-y-auto">
-                        <div className="flex justify-between items-center p-4 border-b">
-                            <h3 className="text-lg font-semibold">Modifier le membre</h3>
-                            <button onClick={handleCloseEditModal} className="text-gray-400 hover:text-gray-600">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg max-h-full overflow-y-auto">
+                        <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
+                            <h3 className="text-lg font-semibold dark:text-gray-200">Modifier le membre</h3>
+                            <button onClick={handleCloseEditModal} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                                <CloseIcon />
                             </button>
                         </div>
                         <form onSubmit={handleUpdateMember} className="p-6 space-y-4">
                             <div>
-                                <label htmlFor="edit-name" className="block text-sm font-medium text-gray-700">Nom complet</label>
-                                <input type="text" id="edit-name" value={editingMember.name} onChange={e => setEditingMember({...editingMember, name: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required />
+                                <label htmlFor="edit-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nom complet</label>
+                                <input type="text" id="edit-name" value={editingMember.name} onChange={e => setEditingMember({...editingMember, name: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required />
                             </div>
                              <div>
-                                <label htmlFor="edit-email" className="block text-sm font-medium text-gray-700">Email</label>
-                                <input type="email" id="edit-email" value={editingMember.email} onChange={e => setEditingMember({...editingMember, email: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required />
+                                <label htmlFor="edit-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                                <input type="email" id="edit-email" value={editingMember.email} onChange={e => setEditingMember({...editingMember, email: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required />
                             </div>
                             <div>
-                                <label htmlFor="edit-descendance" className="block text-sm font-medium text-gray-700">Descendance</label>
-                                <input list="descendances-list" id="edit-descendance" value={editingMember.descendance} onChange={e => setEditingMember({...editingMember, descendance: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required />
+                                <label htmlFor="edit-descendance" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Descendance</label>
+                                <input list="descendances-list" id="edit-descendance" value={editingMember.descendance} onChange={e => setEditingMember({...editingMember, descendance: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required />
                                 <datalist id="descendances-list">
                                     {descendances.map(d => <option key={d} value={d} />)}
                                 </datalist>
                             </div>
                             {/* FIX: Add input field for birthDate in edit modal. */}
                             <div>
-                                <label htmlFor="edit-birthDate" className="block text-sm font-medium text-gray-700">Date de naissance</label>
-                                <input type="date" id="edit-birthDate" value={editingMember.birthDate} onChange={e => setEditingMember({...editingMember, birthDate: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required />
+                                <label htmlFor="edit-birthDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date de naissance</label>
+                                <input type="date" id="edit-birthDate" value={editingMember.birthDate} onChange={e => setEditingMember({...editingMember, birthDate: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required />
                             </div>
                             <div>
-                                <label htmlFor="edit-status" className="block text-sm font-medium text-gray-700">Statut</label>
-                                <select id="edit-status" value={editingMember.status} onChange={e => setEditingMember({...editingMember, status: e.target.value as 'Actif' | 'Inactif'})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <label htmlFor="edit-status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Statut</label>
+                                <select id="edit-status" value={editingMember.status} onChange={e => setEditingMember({...editingMember, status: e.target.value as 'Actif' | 'Inactif'})} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200">
                                     <option>Actif</option>
                                     <option>Inactif</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Photo de profil</label>
-                                <div className="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-md">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Photo de profil</label>
+                                <div className="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-md">
                                     { (capturedImage || editingMember.avatar) && !isCameraOn ? (
                                         <div className="text-center">
                                             <img src={capturedImage || editingMember.avatar} alt="Avatar" className="w-32 h-32 rounded-full object-cover mx-auto" />
-                                            <button type="button" onClick={handleRetake} className="mt-2 text-sm text-indigo-600 hover:text-indigo-800">Changer la photo</button>
+                                            <button type="button" onClick={handleRetake} className="mt-2 text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">Changer la photo</button>
                                         </div>
                                     ) : isCameraOn ? (
                                         <div className="text-center">
@@ -443,7 +442,7 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                                             <button type="button" onClick={handleCapture} className="px-4 py-2 bg-indigo-600 text-white rounded-md">Capturer</button>
                                         </div>
                                     ) : (
-                                        <button type="button" onClick={startCamera} className="flex flex-col items-center space-y-2 text-gray-500 hover:text-indigo-600">
+                                        <button type="button" onClick={startCamera} className="flex flex-col items-center space-y-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">
                                             <CameraIcon />
                                             <span>Prendre une photo</span>
                                         </button>
@@ -452,7 +451,7 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                                 </div>
                             </div>
                             <div className="pt-4 flex justify-end">
-                                <button type="button" onClick={handleCloseEditModal} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md mr-2">Annuler</button>
+                                <button type="button" onClick={handleCloseEditModal} className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md mr-2">Annuler</button>
                                 <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md">Enregistrer</button>
                             </div>
                         </form>
@@ -463,15 +462,15 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
             {/* Delete Confirmation Modal */}
             {isDeleteModalOpen && memberToDelete && (
                 <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md">
                          <div className="p-6">
-                            <h3 className="text-lg font-semibold text-gray-900">Confirmer la suppression</h3>
-                            <p className="mt-2 text-sm text-gray-600">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200">Confirmer la suppression</h3>
+                            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                                 Êtes-vous sûr de vouloir supprimer <strong>{memberToDelete.name}</strong> ? Cette action est irréversible.
                             </p>
                          </div>
-                        <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
-                            <button type="button" onClick={handleCloseDeleteModal} className="bg-white text-gray-700 px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-50">Annuler</button>
+                        <div className="bg-gray-50 dark:bg-gray-700 px-6 py-4 flex justify-end space-x-3">
+                            <button type="button" onClick={handleCloseDeleteModal} className="bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-md border border-gray-300 dark:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-500">Annuler</button>
                             <button type="button" onClick={handleConfirmDelete} className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">Supprimer</button>
                         </div>
                     </div>
