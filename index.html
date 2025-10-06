@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale-1.0" />
     <title>KelensiConnect</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -25,6 +25,13 @@
 </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Polyfill for browser environment to avoid "process is not defined" error.
+      // The execution environment is expected to provide the actual API_KEY.
+      if (typeof window.process === 'undefined') {
+        window.process = { env: {} };
+      }
+    </script>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>

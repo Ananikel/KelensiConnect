@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { Contribution, Member } from '../types';
 import SearchIcon from './icons/SearchIcon';
@@ -27,6 +28,7 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
     const [typeFilter, setTypeFilter] = useState('Tous');
     const [isModalOpen, setModalOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
+    const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
     
     const availableYears = useMemo(() => {
         const years = new Set(contributions.map(c => new Date(c.date).getFullYear()));
@@ -44,12 +46,15 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
 
     const filteredContributions = useMemo(() => {
         return contributions.filter(c => {
+            if (selectedMemberId !== null && c.memberId !== selectedMemberId) {
+                return false;
+            }
             const matchesSearch = c.memberName.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesStatus = statusFilter === 'Tous' || c.status === statusFilter;
             const matchesType = typeFilter === 'Tous' || c.type === typeFilter;
             return matchesSearch && matchesStatus && matchesType;
         });
-    }, [contributions, searchTerm, statusFilter, typeFilter]);
+    }, [contributions, searchTerm, statusFilter, typeFilter, selectedMemberId]);
 
     const yearlyData = useMemo(() => {
         const contributionsInYear = contributions.filter(c => new Date(c.date).getFullYear() === selectedYear);
@@ -69,9 +74,34 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
         return { pieData, totalAmount };
     }, [contributions, selectedYear]);
     
+    const memberData = useMemo(() => {
+        if (selectedMemberId === null) return null;
+        
+        const member = members.find(m => m.id === selectedMemberId);
+        const memberContributions = contributions.filter(c => c.memberId === selectedMemberId);
+        
+        if (!member) return null;
+
+        if (memberContributions.length === 0) return { pieData: [], totalAmount: 0, memberName: member.name };
+
+        const totalAmount = memberContributions.reduce((sum, c) => sum + c.amount, 0);
+        
+        const dataByType = memberContributions.reduce((acc, c) => {
+            acc[c.type] = (acc[c.type] || 0) + c.amount;
+            return acc;
+        }, {} as Record<Contribution['type'], number>);
+
+        const pieData = Object.entries(dataByType).map(([name, value]) => ({
+            name,
+            value,
+        }));
+
+        return { pieData, totalAmount, memberName: member.name };
+    }, [contributions, selectedMemberId, members]);
+
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm, statusFilter, typeFilter]);
+    }, [searchTerm, statusFilter, typeFilter, selectedMemberId]);
 
     const paginatedContributions = useMemo(() => {
         const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -152,66 +182,133 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
 
     return (
         <div className="space-y-6">
-            {/* Year Statistics and Chart */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                     <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
-                        <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">Répartition par Type ({selectedYear})</h3>
-                        <select 
-                            id="year-select" 
-                            aria-label="Sélectionner une année"
-                            value={selectedYear}
-                            onChange={(e) => setSelectedYear(Number(e.target.value))}
-                            className="w-full sm:w-auto border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
-                        >
-                            {availableYears.map(year => (
-                                <option key={year} value={year}>{year}</option>
-                            ))}
-                        </select>
-                     </div>
-                     {yearlyData.pieData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={300}>
-                            <PieChart>
-                                <Pie
-                                    data={yearlyData.pieData}
-                                    cx="50%"
-                                    cy="50%"
-                                    labelLine={false}
-                                    outerRadius={110}
-                                    fill="#8884d8"
-                                    dataKey="value"
-                                    nameKey="name"
-                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                                >
-                                    {yearlyData.pieData.map((entry) => (
-                                        <Cell key={`cell-${entry.name}`} fill={COLORS[entry.name as keyof typeof COLORS]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip 
-                                    formatter={(value: number) => `${value.toLocaleString('fr-FR')} CFA`}
-                                    contentStyle={{ backgroundColor: tooltipBg, border: `1px solid ${gridColor}` }}
-                                    labelStyle={{ color: legendColor }} 
-                                />
-                                <Legend wrapperStyle={{ color: legendColor }} />
-                            </PieChart>
-                        </ResponsiveContainer>
-                     ) : (
-                         <div className="flex items-center justify-center h-[300px] text-gray-500 dark:text-gray-400">
-                            Aucune donnée pour l'année {selectedYear}.
-                         </div>
-                     )}
-                </div>
-                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col">
-                    <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Statistiques Annuelles</h3>
-                    <div className="text-center bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg flex-grow flex flex-col justify-center">
-                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total des Contributions pour {selectedYear}</p>
-                        <p className="text-3xl font-bold text-gray-800 dark:text-gray-100 mt-1">
-                            {yearlyData.totalAmount.toLocaleString('fr-FR')} CFA
-                        </p>
+             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
+                <label htmlFor="member-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Filtrer par membre
+                </label>
+                <select
+                    id="member-select"
+                    value={selectedMemberId ?? ''}
+                    onChange={(e) => setSelectedMemberId(e.target.value ? Number(e.target.value) : null)}
+                    className="mt-1 block w-full md:w-1/2 lg:w-1/3 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                >
+                    <option value="">Vue d'ensemble (tous les membres)</option>
+                    {members.sort((a,b) => a.name.localeCompare(b.name)).map(member => (
+                        <option key={member.id} value={member.id}>
+                            {member.name}
+                        </option>
+                    ))}
+                </select>
+            </div>
+            {selectedMemberId !== null && memberData ? (
+                // Member summary view
+                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                        <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Répartition pour {memberData.memberName}</h3>
+                        {memberData.pieData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height={300}>
+                                <PieChart>
+                                    <Pie
+                                        data={memberData.pieData}
+                                        cx="50%"
+                                        cy="50%"
+                                        labelLine={false}
+                                        outerRadius={110}
+                                        fill="#8884d8"
+                                        dataKey="value"
+                                        nameKey="name"
+                                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                    >
+                                        {memberData.pieData.map((entry) => (
+                                            <Cell key={`cell-${entry.name}`} fill={COLORS[entry.name as keyof typeof COLORS]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip 
+                                        formatter={(value: number) => `${value.toLocaleString('fr-FR')} CFA`}
+                                        contentStyle={{ backgroundColor: tooltipBg, border: `1px solid ${gridColor}` }}
+                                        labelStyle={{ color: legendColor }} 
+                                    />
+                                    <Legend wrapperStyle={{ color: legendColor }} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="flex items-center justify-center h-[300px] text-gray-500 dark:text-gray-400">
+                                Ce membre n'a aucune contribution enregistrée.
+                            </div>
+                        )}
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col">
+                        <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Statistiques du Membre</h3>
+                        <div className="text-center bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg flex-grow flex flex-col justify-center">
+                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total des Contributions (Toutes Périodes)</p>
+                            <p className="text-3xl font-bold text-gray-800 dark:text-gray-100 mt-1">
+                                {memberData.totalAmount.toLocaleString('fr-FR')} CFA
+                            </p>
+                        </div>
                     </div>
                 </div>
-            </div>
-
+            ) : (
+                // Yearly statistics view
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                         <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
+                            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">Répartition par Type ({selectedYear})</h3>
+                            <select 
+                                id="year-select" 
+                                aria-label="Sélectionner une année"
+                                value={selectedYear}
+                                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                                className="w-full sm:w-auto border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                            >
+                                {availableYears.map(year => (
+                                    <option key={year} value={year}>{year}</option>
+                                ))}
+                            </select>
+                         </div>
+                         {yearlyData.pieData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height={300}>
+                                <PieChart>
+                                    <Pie
+                                        data={yearlyData.pieData}
+                                        cx="50%"
+                                        cy="50%"
+                                        labelLine={false}
+                                        outerRadius={110}
+                                        fill="#8884d8"
+                                        dataKey="value"
+                                        nameKey="name"
+                                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                    >
+                                        {yearlyData.pieData.map((entry) => (
+                                            <Cell key={`cell-${entry.name}`} fill={COLORS[entry.name as keyof typeof COLORS]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip 
+                                        formatter={(value: number) => `${value.toLocaleString('fr-FR')} CFA`}
+                                        contentStyle={{ backgroundColor: tooltipBg, border: `1px solid ${gridColor}` }}
+                                        labelStyle={{ color: legendColor }} 
+                                    />
+                                    <Legend wrapperStyle={{ color: legendColor }} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                         ) : (
+                             <div className="flex items-center justify-center h-[300px] text-gray-500 dark:text-gray-400">
+                                Aucune donnée pour l'année {selectedYear}.
+                             </div>
+                         )}
+                    </div>
+                     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col">
+                        <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Statistiques Annuelles</h3>
+                        <div className="text-center bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg flex-grow flex flex-col justify-center">
+                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total des Contributions pour {selectedYear}</p>
+                            <p className="text-3xl font-bold text-gray-800 dark:text-gray-100 mt-1">
+                                {yearlyData.totalAmount.toLocaleString('fr-FR')} CFA
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
             {/* Contributions Table */}
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
                 <div className="flex flex-col md:flex-row items-center justify-between mb-6 space-y-4 md:space-y-0">
@@ -221,7 +318,8 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
                             placeholder="Rechercher par nom..." 
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full md:w-80 pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                            disabled={!!selectedMemberId}
+                            className="w-full md:w-80 pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-700/50"
                         />
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <SearchIcon />
@@ -282,7 +380,7 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
                 </div>
                  {filteredContributions.length === 0 && (
                     <div className="text-center py-10 text-gray-500 dark:text-gray-400">
-                        Aucune contribution trouvée.
+                        Aucune contribution trouvée pour les filtres actuels.
                     </div>
                 )}
                  <Pagination
@@ -305,7 +403,7 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
                                 <label htmlFor="memberId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Membre</label>
                                 <select id="memberId" value={memberId} onChange={e => setMemberId(Number(e.target.value))} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required>
                                     <option value="" disabled>Sélectionner un membre</option>
-                                    {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                                    {members.sort((a,b) => a.name.localeCompare(b.name)).map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                                 </select>
                             </div>
                              <div>

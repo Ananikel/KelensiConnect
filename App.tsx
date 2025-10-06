@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import Members from './components/Members';
@@ -13,7 +13,8 @@ import Settings from './components/Settings';
 import Header from './components/Header';
 import Login from './components/Login';
 import NotificationCenter from './components/NotificationCenter';
-import { Page, Member, Contribution, UserProfile, ChatMessage, AppEvent, Notification, Photo, NotificationPreferences, Role, Permission } from './types';
+// FIX: Imported the 'Photo' type to resolve the 'Cannot find name' error.
+import { Page, Member, Contribution, UserProfile, ChatMessage, AppEvent, Notification, NotificationPreferences, Role, Permission, Photo } from './types';
 import { MOCK_MEMBERS, MOCK_CONTRIBUTIONS, MOCK_MESSAGES, MOCK_EVENTS, MOCK_PHOTOS, MOCK_ROLES, MOCK_PERMISSIONS } from './constants';
 import ProfileModal from './components/ProfileModal';
 
@@ -106,16 +107,16 @@ const App: React.FC = () => {
     };
   }, [isSidebarOpen]);
 
-  const addNotification = (notification: Omit<Notification, 'id'>) => {
+  const addNotification = useCallback((notification: Omit<Notification, 'id'>) => {
     const newNotification = { ...notification, id: Date.now() };
     setNotifications(prev => [...prev, newNotification]);
-  };
+  }, []);
   
-  const addNotificationWithPreferences = (type: keyof NotificationPreferences, notification: Omit<Notification, 'id'>) => {
+  const addNotificationWithPreferences = useCallback((type: keyof NotificationPreferences, notification: Omit<Notification, 'id'>) => {
     if (notificationPreferences[type]) {
       addNotification(notification);
     }
-  };
+  }, [notificationPreferences, addNotification]);
 
   const removeNotification = (id: number) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
@@ -169,8 +170,7 @@ const App: React.FC = () => {
           });
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);
+  }, [isAuthenticated, events, members, contributions, addNotificationWithPreferences]);
 
 
   const handleLogin = () => {
