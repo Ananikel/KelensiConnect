@@ -65,7 +65,16 @@ export const MOCK_EVENTS: AppEvent[] = [
         date: '2024-09-15',
         time: '10:00',
         location: 'Salle Polyvalente, Lomé',
-        description: 'Présentation du bilan annuel, élection du nouveau bureau et discussion des projets futurs.'
+        description: 'Présentation du bilan annuel, élection du nouveau bureau et discussion des projets futurs.',
+        rsvps: [
+            { memberId: 1, status: 'Attending' },
+            { memberId: 2, status: 'Attending' },
+            { memberId: 5, status: 'Attending' },
+            { memberId: 8, status: 'Maybe' },
+            { memberId: 10, status: 'Not Attending' },
+            { memberId: 11, status: 'Attending' },
+            { memberId: 13, status: 'Attending' },
+        ]
     },
     {
         id: 2,
@@ -73,7 +82,14 @@ export const MOCK_EVENTS: AppEvent[] = [
         date: '2024-08-20',
         time: '08:00',
         location: 'Quartier Bè',
-        description: 'Opération de nettoyage et de sensibilisation à l\'environnement dans le quartier.'
+        description: 'Opération de nettoyage et de sensibilisation à l\'environnement dans le quartier.',
+        rsvps: [
+            { memberId: 3, status: 'Attending' },
+            { memberId: 6, status: 'Attending' },
+            { memberId: 7, status: 'Attending' },
+            { memberId: 18, status: 'Attending' },
+            { memberId: 22, status: 'Maybe' },
+        ]
     },
     {
         id: 3,
@@ -81,7 +97,8 @@ export const MOCK_EVENTS: AppEvent[] = [
         date: '2024-12-22',
         time: '19:00',
         location: 'Plage de Lomé',
-        description: 'Célébration de fin d\'année avec tous les membres et leurs familles. Musique, repas et animations.'
+        description: 'Célébration de fin d\'année avec tous les membres et leurs familles. Musique, repas et animations.',
+        rsvps: []
     },
      {
         id: 4,
@@ -89,6 +106,15 @@ export const MOCK_EVENTS: AppEvent[] = [
         date: '2024-06-10',
         time: '09:00',
         location: 'Maison des Jeunes',
-        description: 'Événement caritatif pour collecter des fournitures scolaires pour les enfants défavorisés.'
+        description: 'Événement caritatif pour collecter des fournitures scolaires pour les enfants défavorisés.',
+        rsvps: [
+             { memberId: 1, status: 'Attending' },
+             { memberId: 4, status: 'Not Attending' },
+             { memberId: 12, status: 'Attending' },
+             { memberId: 14, status: 'Attending' },
+             { memberId: 15, status: 'Attending' },
+             { memberId: 19, status: 'Attending' },
+             { memberId: 20, status: 'Attending' },
+        ]
     }
 ];

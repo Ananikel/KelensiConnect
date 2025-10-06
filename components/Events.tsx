@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { AppEvent } from '../types';
+import { AppEvent, Member, RSVP } from '../types';
 import CloseIcon from './icons/CloseIcon';
 import PlusIcon from './icons/PlusIcon';
 import EditIcon from './icons/EditIcon';
@@ -7,16 +7,20 @@ import DeleteIcon from './icons/DeleteIcon';
 import CalendarIcon from './icons/CalendarIcon';
 import TimeIcon from './icons/TimeIcon';
 import LocationIcon from './icons/LocationIcon';
+import UsersIcon from './icons/UsersIcon';
+import EventDetailModal from './EventDetailModal';
 
 interface EventsProps {
     events: AppEvent[];
     setEvents: React.Dispatch<React.SetStateAction<AppEvent[]>>;
+    members: Member[];
 }
 
-const EventCard: React.FC<{ event: AppEvent; onEdit: () => void; onDelete: () => void; isPast: boolean }> = ({ event, onEdit, onDelete, isPast }) => {
+const EventCard: React.FC<{ event: AppEvent; onEdit: () => void; onDelete: () => void; onView: () => void; isPast: boolean }> = ({ event, onEdit, onDelete, onView, isPast }) => {
+    const attendeesCount = event.rsvps?.filter(r => r.status === 'Attending').length || 0;
     return (
-        <div className={`bg-white rounded-lg shadow-md overflow-hidden transition-opacity ${isPast ? 'opacity-60' : ''}`}>
-            <div className="p-5">
+        <div className={`bg-white rounded-lg shadow-md flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${isPast ? 'opacity-60' : ''}`}>
+            <div className="p-5 cursor-pointer flex-grow" onClick={onView}>
                 <h3 className="text-xl font-bold text-gray-800 mb-2">{event.title}</h3>
                 <div className="space-y-2 text-gray-600">
                     <div className="flex items-center">
@@ -32,32 +36,38 @@ const EventCard: React.FC<{ event: AppEvent; onEdit: () => void; onDelete: () =>
                         <span className="ml-2">{event.location}</span>
                     </div>
                 </div>
-                <p className="text-gray-700 mt-4 text-sm">{event.description}</p>
+                <p className="text-gray-700 mt-4 text-sm flex-grow">{event.description}</p>
             </div>
-            <div className="bg-gray-50 px-5 py-3 flex justify-end space-x-3">
-                <button onClick={onEdit} className="text-indigo-600 hover:text-indigo-900" title="Modifier">
-                    <EditIcon />
-                </button>
-                <button onClick={onDelete} className="text-red-600 hover:text-red-900" title="Supprimer">
-                    <DeleteIcon />
-                </button>
+            <div className="bg-gray-50 px-5 py-3 flex justify-between items-center">
+                 <div className="flex items-center text-sm text-gray-600">
+                    <div className="w-5 h-5"><UsersIcon /></div>
+                    <span className="ml-2 font-medium">{attendeesCount} participant(s)</span>
+                 </div>
+                 <div className="flex space-x-3">
+                    <button onClick={onEdit} className="text-indigo-600 hover:text-indigo-900" title="Modifier">
+                        <EditIcon />
+                    </button>
+                    <button onClick={onDelete} className="text-red-600 hover:text-red-900" title="Supprimer">
+                        <DeleteIcon />
+                    </button>
+                </div>
             </div>
         </div>
     );
 };
 
-const Events: React.FC<EventsProps> = ({ events, setEvents }) => {
+const Events: React.FC<EventsProps> = ({ events, setEvents, members }) => {
     const [isModalOpen, setModalOpen] = useState(false);
     const [editingEvent, setEditingEvent] = useState<AppEvent | null>(null);
     const [eventToDelete, setEventToDelete] = useState<AppEvent | null>(null);
+    const [viewingEvent, setViewingEvent] = useState<AppEvent | null>(null);
 
     const sortedEvents = useMemo(() => {
-        const today = new Date().toISOString().split('T')[0];
-        return [...events].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        return [...events].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     }, [events]);
 
     const upcomingEvents = sortedEvents.filter(e => e.date >= new Date().toISOString().split('T')[0]);
-    const pastEvents = sortedEvents.filter(e => e.date < new Date().toISOString().split('T')[0]);
+    const pastEvents = sortedEvents.filter(e => e.date < new Date().toISOString().split('T')[0]).reverse();
 
 
     const handleOpenModal = (event: AppEvent | null = null) => {
@@ -74,10 +84,18 @@ const Events: React.FC<EventsProps> = ({ events, setEvents }) => {
         if (eventData.id) { // Editing
             setEvents(events.map(e => e.id === eventData.id ? { ...e, ...eventData } : e));
         } else { // Adding
-            const newEvent: AppEvent = { ...eventData, id: Date.now() };
+            const newEvent: AppEvent = { ...eventData, id: Date.now(), rsvps: [] };
             setEvents([...events, newEvent]);
         }
         handleCloseModal();
+    };
+    
+    const handleUpdateRsvps = (eventId: number, newRsvps: RSVP[]) => {
+        setEvents(prevEvents => 
+            prevEvents.map(event => 
+                event.id === eventId ? { ...event, rsvps: newRsvps } : event
+            )
+        );
     };
 
     const handleOpenDeleteModal = (event: AppEvent) => {
@@ -110,7 +128,7 @@ const Events: React.FC<EventsProps> = ({ events, setEvents }) => {
                     <h3 className="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Événements à venir</h3>
                     {upcomingEvents.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {upcomingEvents.map(event => <EventCard key={event.id} event={event} onEdit={() => handleOpenModal(event)} onDelete={() => handleOpenDeleteModal(event)} isPast={false}/>)}
+                            {upcomingEvents.map(event => <EventCard key={event.id} event={event} onView={() => setViewingEvent(event)} onEdit={() => handleOpenModal(event)} onDelete={() => handleOpenDeleteModal(event)} isPast={false}/>)}
                         </div>
                     ) : (
                          <p className="text-gray-500 text-center py-4">Aucun événement à venir.</p>
@@ -120,7 +138,7 @@ const Events: React.FC<EventsProps> = ({ events, setEvents }) => {
                     <h3 className="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Événements passés</h3>
                     {pastEvents.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {pastEvents.map(event => <EventCard key={event.id} event={event} onEdit={() => handleOpenModal(event)} onDelete={() => handleOpenDeleteModal(event)} isPast={true}/>)}
+                            {pastEvents.map(event => <EventCard key={event.id} event={event} onView={() => setViewingEvent(event)} onEdit={() => handleOpenModal(event)} onDelete={() => handleOpenDeleteModal(event)} isPast={true}/>)}
                         </div>
                     ) : (
                          <p className="text-gray-500 text-center py-4">Aucun événement passé.</p>
@@ -129,6 +147,14 @@ const Events: React.FC<EventsProps> = ({ events, setEvents }) => {
             </div>
 
             {isModalOpen && <EventModal event={editingEvent} onSave={handleSaveEvent} onClose={handleCloseModal} />}
+            {viewingEvent && (
+                <EventDetailModal
+                    event={viewingEvent}
+                    members={members}
+                    onClose={() => setViewingEvent(null)}
+                    onUpdateRsvps={handleUpdateRsvps}
+                />
+            )}
             {eventToDelete && (
                 <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-md">

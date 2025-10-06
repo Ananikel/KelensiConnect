@@ -38,6 +38,13 @@ export interface ChatMessage {
   attachment?: Attachment;
 }
 
+export type RSVPStatus = 'Attending' | 'Maybe' | 'Not Attending';
+
+export interface RSVP {
+  memberId: number;
+  status: RSVPStatus;
+}
+
 export interface AppEvent {
   id: number;
   title: string;
@@ -45,6 +52,7 @@ export interface AppEvent {
   time: string;
   location: string;
   description: string;
+  rsvps?: RSVP[];
 }
 
 export interface UserProfile {

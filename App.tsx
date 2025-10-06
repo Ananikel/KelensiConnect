@@ -113,7 +113,7 @@ const App: React.FC = () => {
       case 'Communication':
         return <Communication members={members} messages={messages} setMessages={setMessages} />;
        case 'Événements':
-        return <Events events={events} setEvents={setEvents} />;
+        return <Events events={events} setEvents={setEvents} members={members} />;
        case 'Paramètres':
         return <Settings />;
       default:
