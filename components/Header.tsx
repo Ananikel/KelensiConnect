@@ -35,7 +35,7 @@ const Header: React.FC<HeaderProps> = ({ title, userProfile, setUserProfile, onL
 
   return (
     <>
-        <header className="bg-white dark:bg-gray-800 shadow-sm h-20 flex items-center justify-between px-6 md:px-8 z-10">
+        <header className="bg-white dark:bg-gray-800 shadow-sm h-20 flex items-center justify-between px-6 md:px-8 z-10 flex-shrink-0">
           <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">{title}</h2>
           <div className="flex items-center space-x-4">
             <div className="relative hidden md:block">
@@ -51,7 +51,7 @@ const Header: React.FC<HeaderProps> = ({ title, userProfile, setUserProfile, onL
             
             <button
                 onClick={toggleTheme}
-                className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
                 aria-label="Changer de thème"
             >
                 {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
