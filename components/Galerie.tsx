@@ -229,7 +229,7 @@ const Galerie: React.FC<GalerieProps> = ({ photos, setPhotos }) => {
     );
 };
 
-// Add/Edit Modal Component
+// Add/Edit Modal Component - REFACTORED
 const AddEditPhotoModal: React.FC<{ photo: Photo | null; onSave: (data: Omit<Photo, 'id' | 'uploadDate'> & { id?: number }) => void; onClose: () => void; }> = ({ photo, onSave, onClose }) => {
     const [title, setTitle] = useState(photo?.title || '');
     const [description, setDescription] = useState(photo?.description || '');
