@@ -1,4 +1,4 @@
-export type Page = 'Dashboard' | 'Membres' | 'Finances' | 'Communication' | 'Événements' | 'Galerie' | 'Live' | 'Documentation' | 'Paramètres';
+export type Page = 'Dashboard' | 'Membres' | 'Finances' | 'Cotisations' | 'Communication' | 'Événements' | 'Galerie' | 'Live' | 'Documentation' | 'Paramètres';
 
 export interface Permission {
   id: string;
@@ -14,6 +14,14 @@ export interface Role {
   permissionIds: string[];
 }
 
+export interface ContributionType {
+  id: string;
+  name: string;
+  amount: number;
+  frequency: 'Unique' | 'Mensuelle' | 'Trimestrielle' | 'Annuelle';
+  description: string;
+}
+
 export interface Member {
   id: number;
   name: string;
@@ -25,6 +33,7 @@ export interface Member {
   avatar: string;
   roleId: string;
   descendance: string;
+  contributionTypeIds?: string[];
 }
 
 export interface Contribution {

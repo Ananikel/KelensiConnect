@@ -10,6 +10,7 @@ import CloseIcon from './icons/CloseIcon';
 import GalleryIcon from './icons/GalleryIcon';
 import DocumentationIcon from './icons/DocumentationIcon';
 import LiveIcon from './icons/LiveIcon';
+import CotisationsIcon from './icons/CotisationsIcon';
 
 interface SidebarProps {
   currentPage: Page;
@@ -23,6 +24,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isSideba
     { name: 'Dashboard', icon: <DashboardIcon /> },
     { name: 'Membres', icon: <MembersIcon /> },
     { name: 'Finances', icon: <FinancesIcon /> },
+    { name: 'Cotisations', icon: <CotisationsIcon /> },
     { name: 'Événements', icon: <EventsIcon /> },
     { name: 'Communication', icon: <CommunicationIcon /> },
     { name: 'Galerie', icon: <GalleryIcon /> },

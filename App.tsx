@@ -13,9 +13,10 @@ import Settings from './components/Settings';
 import Header from './components/Header';
 import Login from './components/Login';
 import NotificationCenter from './components/NotificationCenter';
+import Cotisations from './components/Cotisations';
 // FIX: Imported the 'Photo' type to resolve the 'Cannot find name' error.
-import { Page, Member, Contribution, UserProfile, ChatMessage, AppEvent, Notification, NotificationPreferences, Role, Permission, Photo } from './types';
-import { MOCK_MEMBERS, MOCK_CONTRIBUTIONS, MOCK_MESSAGES, MOCK_EVENTS, MOCK_PHOTOS, MOCK_ROLES, MOCK_PERMISSIONS } from './constants';
+import { Page, Member, Contribution, UserProfile, ChatMessage, AppEvent, Notification, NotificationPreferences, Role, Permission, Photo, ContributionType } from './types';
+import { MOCK_MEMBERS, MOCK_CONTRIBUTIONS, MOCK_MESSAGES, MOCK_EVENTS, MOCK_PHOTOS, MOCK_ROLES, MOCK_PERMISSIONS, MOCK_CONTRIBUTION_TYPES } from './constants';
 import ProfileModal from './components/ProfileModal';
 
 const App: React.FC = () => {
@@ -25,6 +26,7 @@ const App: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>(MOCK_MESSAGES);
   const [events, setEvents] = useState<AppEvent[]>(MOCK_EVENTS);
   const [photos, setPhotos] = useState<Photo[]>(MOCK_PHOTOS);
+  const [contributionTypes, setContributionTypes] = useState<ContributionType[]>(MOCK_CONTRIBUTION_TYPES);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -188,6 +190,7 @@ const App: React.FC = () => {
     setEvents(MOCK_EVENTS);
     setPhotos(MOCK_PHOTOS);
     setRoles(MOCK_ROLES);
+    setContributionTypes(MOCK_CONTRIBUTION_TYPES);
     setNotifications([]);
     addNotification({ type: 'success', title: 'Réinitialisation terminée', message: 'Les données de l\'application ont été réinitialisées.' });
   };
@@ -229,6 +232,31 @@ const App: React.FC = () => {
       addNotification({ type: 'success', title: 'Rôle supprimé', message: 'Le rôle a été supprimé avec succès.' });
   };
 
+  const handleSaveContributionType = (type: ContributionType) => {
+    const existing = contributionTypes.find(t => t.id === type.id);
+    if (existing) {
+      setContributionTypes(contributionTypes.map(t => t.id === type.id ? type : t));
+      addNotification({ type: 'success', title: 'Type modifié', message: `Le type de cotisation "${type.name}" a été mis à jour.` });
+    } else {
+      setContributionTypes([...contributionTypes, type]);
+      addNotification({ type: 'success', title: 'Type ajouté', message: `Le type de cotisation "${type.name}" a été créé.` });
+    }
+  };
+
+  const handleDeleteContributionType = (typeId: string) => {
+    setContributionTypes(contributionTypes.filter(t => t.id !== typeId));
+    setMembers(prevMembers => prevMembers.map(m => ({
+      ...m,
+      contributionTypeIds: m.contributionTypeIds?.filter(id => id !== typeId) || []
+    })));
+    addNotification({ type: 'success', title: 'Type supprimé', message: 'Le type de cotisation a été supprimé.' });
+  };
+
+  const handleUpdateMemberContributions = (memberId: number, typeIds: string[]) => {
+    setMembers(prevMembers => prevMembers.map(m => m.id === memberId ? { ...m, contributionTypeIds: typeIds } : m));
+    addNotification({ type: 'info', title: 'Assignations modifiées', message: 'Les cotisations du membre ont été mises à jour.' });
+  };
+
 
   const renderPage = () => {
     switch (currentPage) {
@@ -238,6 +266,14 @@ const App: React.FC = () => {
         return <Members members={members} setMembers={setMembers} roles={roles} />;
       case 'Finances':
         return <Finances members={members} contributions={contributions} setContributions={setContributions} theme={theme} />;
+      case 'Cotisations':
+        return <Cotisations
+                    members={members}
+                    contributionTypes={contributionTypes}
+                    onSaveType={handleSaveContributionType}
+                    onDeleteType={handleDeleteContributionType}
+                    onUpdateMemberContributions={handleUpdateMemberContributions}
+                />;
       case 'Communication':
         return <Communication members={members} messages={messages} setMessages={setMessages} roles={roles} />;
        case 'Événements':
@@ -273,6 +309,7 @@ const App: React.FC = () => {
     Dashboard: 'Tableau de Bord',
     Membres: 'Gestion des Membres',
     Finances: 'Suivi Financier',
+    Cotisations: 'Gestion des Cotisations',
     Communication: 'Messagerie',
     Événements: 'Gestion des Événements',
     Galerie: 'Galerie de Photos',
