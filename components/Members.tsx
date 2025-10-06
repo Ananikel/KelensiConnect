@@ -7,6 +7,8 @@ import EditIcon from './icons/EditIcon';
 import DeleteIcon from './icons/DeleteIcon';
 import DownloadIcon from './icons/DownloadIcon';
 import Pagination from './Pagination';
+import EmailIcon from './icons/EmailIcon';
+import PhoneIcon from './icons/PhoneIcon';
 
 interface MembersProps {
     members: Member[];
@@ -59,7 +61,6 @@ const Members: React.FC<MembersProps> = ({ members, setMembers, roles }) => {
 
     const paginatedMembers = useMemo(() => {
         const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-        // FIX: The slice method takes 2 arguments, not 3. Corrected the call.
         return filteredMembers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
     }, [filteredMembers, currentPage]);
 
@@ -228,8 +229,8 @@ const Members: React.FC<MembersProps> = ({ members, setMembers, roles }) => {
 
     return (
         <>
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                <div className="flex flex-col md:flex-row items-center justify-between mb-6 space-y-4 md:space-y-0">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-6">
+                <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
                     <div className="relative w-full md:w-auto">
                         <input 
                             type="text" 
@@ -261,77 +262,66 @@ const Members: React.FC<MembersProps> = ({ members, setMembers, roles }) => {
                         </button>
                     </div>
                 </div>
-
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead className="bg-gray-50 dark:bg-gray-700">
-                            <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Nom</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rôle</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date d'adhésion</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Statut</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                            {paginatedMembers.map((member: Member) => (
-                                <tr key={member.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center">
-                                            <div className="flex-shrink-0 h-10 w-10">
-                                                <button type="button" onClick={() => handleAvatarClick(member.avatar)} className="rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" aria-label={`Agrandir l'avatar de ${member.name}`}>
-                                                    <img 
-                                                        className="h-10 w-10 rounded-full object-cover" 
-                                                        src={member.avatar} 
-                                                        alt={member.name} 
-                                                    />
-                                                </button>
-                                            </div>
-                                            <div className="ml-4">
-                                                <div className="text-sm font-medium text-gray-900 dark:text-gray-200">{member.name}</div>
-                                                <div className="text-xs text-gray-500 dark:text-gray-400">{member.descendance}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-200">{member.email}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{roles.find(r => r.id === member.roleId)?.name || 'N/A'}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                        {new Date(member.joinDate).toLocaleDateString('fr-FR')}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                            member.status === 'Actif' ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300'
-                                        }`}>
-                                            {member.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <div className="flex items-center space-x-4">
-                                            <button onClick={() => handleOpenEditModal(member)} className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" aria-label={`Modifier ${member.name}`}>
-                                                <EditIcon />
-                                            </button>
-                                            <button onClick={() => handleOpenDeleteModal(member)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" aria-label={`Supprimer ${member.name}`}>
-                                                <DeleteIcon />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-                 {filteredMembers.length === 0 && (
-                    <div className="text-center py-10 text-gray-500 dark:text-gray-400">
-                        Aucun membre trouvé.
-                    </div>
-                )}
-                 <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={setCurrentPage}
-                />
             </div>
+
+             {paginatedMembers.length > 0 ? (
+                <>
+                    <div className="pt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-20">
+                        {paginatedMembers.map((member) => {
+                             const role = roles.find(r => r.id === member.roleId);
+                             return (
+                                <div key={member.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg pt-14 p-6 relative text-center transform hover:-translate-y-2 transition-transform duration-300">
+                                    <button type="button" onClick={() => handleAvatarClick(member.avatar)} className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 focus:outline-none rounded-full focus:ring-4 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-900">
+                                        <img
+                                            className="w-28 h-28 rounded-full object-cover border-4 border-white dark:border-gray-800 shadow-md"
+                                            src={member.avatar}
+                                            alt={member.name}
+                                        />
+                                        <span className={`absolute bottom-2 right-2 h-4 w-4 rounded-full ${member.status === 'Actif' ? 'bg-green-500' : 'bg-red-500'} ring-2 ring-white dark:ring-gray-800`} title={member.status}></span>
+                                    </button>
+                                    
+                                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-200 truncate">{member.name}</h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">{member.descendance}</p>
+                                    {role && <span className="mt-2 inline-block px-3 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300">{role.name}</span>}
+                                
+                                    <hr className="my-4 border-t border-gray-200 dark:border-gray-700" />
+                                    
+                                    <div className="space-y-2 text-left text-sm text-gray-700 dark:text-gray-300">
+                                        <p className="flex items-center" title={member.email}>
+                                            <EmailIcon /> <span className="ml-3 truncate">{member.email}</span>
+                                        </p>
+                                        <p className="flex items-center">
+                                            <PhoneIcon /> <span className="ml-3">{member.phone || 'N/A'}</span>
+                                        </p>
+                                    </div>
+                                
+                                    <div className="mt-6 flex justify-center space-x-2">
+                                        <button onClick={() => handleOpenEditModal(member)} className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                            <EditIcon />
+                                            <span className="ml-2">Modifier</span>
+                                        </button>
+                                        <button onClick={() => handleOpenDeleteModal(member)} className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                            <DeleteIcon />
+                                            <span className="ml-2">Supprimer</span>
+                                        </button>
+                                    </div>
+                                </div>
+                             );
+                        })}
+                    </div>
+                     <div className="mt-8">
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={setCurrentPage}
+                        />
+                    </div>
+                </>
+            ) : (
+                 <div className="text-center py-20 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+                    <p>Aucun membre trouvé.</p>
+                </div>
+            )}
             
             {/* Add Member Modal */}
             {isAddModalOpen && (
