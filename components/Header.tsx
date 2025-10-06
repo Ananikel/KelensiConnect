@@ -4,7 +4,6 @@ import ChevronDownIcon from './icons/ChevronDownIcon';
 import LogoutIcon from './icons/LogoutIcon';
 import { UserProfile } from '../types';
 import UserIcon from './icons/UserIcon';
-import ProfileModal from './ProfileModal';
 import SunIcon from './icons/SunIcon';
 import MoonIcon from './icons/MoonIcon';
 import MenuIcon from './icons/MenuIcon';
@@ -12,16 +11,15 @@ import MenuIcon from './icons/MenuIcon';
 interface HeaderProps {
     title: string;
     userProfile: UserProfile;
-    setUserProfile: React.Dispatch<React.SetStateAction<UserProfile>>;
     onLogout: () => void;
     theme: 'light' | 'dark';
     toggleTheme: () => void;
     setSidebarOpen: (isOpen: boolean) => void;
+    setProfileModalOpen: (isOpen: boolean) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ title, userProfile, setUserProfile, onLogout, theme, toggleTheme, setSidebarOpen }) => {
+const Header: React.FC<HeaderProps> = ({ title, userProfile, onLogout, theme, toggleTheme, setSidebarOpen, setProfileModalOpen }) => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const [isProfileModalOpen, setProfileModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -111,16 +109,6 @@ const Header: React.FC<HeaderProps> = ({ title, userProfile, setUserProfile, onL
             </div>
           </div>
         </header>
-        {isProfileModalOpen && (
-            <ProfileModal
-                user={userProfile}
-                onSave={(updatedProfile) => {
-                    setUserProfile(updatedProfile);
-                    setProfileModalOpen(false);
-                }}
-                onClose={() => setProfileModalOpen(false)}
-            />
-        )}
     </>
   );
 };

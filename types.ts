@@ -75,3 +75,8 @@ export interface Photo {
   description: string;
   uploadDate: string;
 }
+
+export interface NotificationPreferences {
+  upcomingEvents: boolean;
+  pendingContributions: boolean;
+}

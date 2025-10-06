@@ -12,8 +12,9 @@ import Settings from './components/Settings';
 import Header from './components/Header';
 import Login from './components/Login';
 import NotificationCenter from './components/NotificationCenter';
-import { Page, Member, Contribution, UserProfile, ChatMessage, AppEvent, Notification, Photo } from './types';
+import { Page, Member, Contribution, UserProfile, ChatMessage, AppEvent, Notification, Photo, NotificationPreferences } from './types';
 import { MOCK_MEMBERS, MOCK_CONTRIBUTIONS, MOCK_MESSAGES, MOCK_EVENTS, MOCK_PHOTOS } from './constants';
+import ProfileModal from './components/ProfileModal';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('Dashboard');
@@ -25,6 +26,18 @@ const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  
+  // State for Settings
+  const [notificationPreferences, setNotificationPreferences] = useState<NotificationPreferences>(() => {
+    try {
+      const saved = localStorage.getItem('kelensi-notif-prefs');
+      return saved ? JSON.parse(saved) : { upcomingEvents: true, pendingContributions: true };
+    } catch (error) {
+      console.error('Erreur lors de la lecture des préférences de notification', error);
+      return { upcomingEvents: true, pendingContributions: true };
+    }
+  });
+
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const savedTheme = localStorage.getItem('kelensi-theme');
     if (savedTheme === 'dark' || savedTheme === 'light') {
@@ -32,6 +45,9 @@ const App: React.FC = () => {
     }
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
+
+  // Lifted state for Profile Modal
+  const [isProfileModalOpen, setProfileModalOpen] = useState(false);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -41,6 +57,11 @@ const App: React.FC = () => {
     }
     localStorage.setItem('kelensi-theme', theme);
   }, [theme]);
+  
+  // Persist notification preferences
+  useEffect(() => {
+    localStorage.setItem('kelensi-notif-prefs', JSON.stringify(notificationPreferences));
+  }, [notificationPreferences]);
 
   const toggleTheme = () => {
       setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
@@ -86,6 +107,12 @@ const App: React.FC = () => {
     const newNotification = { ...notification, id: Date.now() };
     setNotifications(prev => [...prev, newNotification]);
   };
+  
+  const addNotificationWithPreferences = (type: keyof NotificationPreferences, notification: Omit<Notification, 'id'>) => {
+    if (notificationPreferences[type]) {
+      addNotification(notification);
+    }
+  };
 
   const removeNotification = (id: number) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
@@ -110,7 +137,7 @@ const App: React.FC = () => {
       events.forEach(event => {
         const eventDate = new Date(event.date);
         if (eventDate >= today && eventDate <= nextWeek) {
-          addNotification({
+          addNotificationWithPreferences('upcomingEvents', {
             type: 'info',
             title: 'Événement à venir',
             message: `N'oubliez pas : "${event.title}" le ${eventDate.toLocaleDateString('fr-FR')}.`
@@ -132,7 +159,7 @@ const App: React.FC = () => {
       const inactiveContributors = activeMembers.filter(m => !membersWithRecentContributions.has(m.id));
 
       if(inactiveContributors.length > 0) {
-           addNotification({
+           addNotificationWithPreferences('pendingContributions', {
             type: 'warning',
             title: 'Cotisations en attente',
             message: `${inactiveContributors.length} membre(s) actif(s) n'ont pas contribué récemment.`
@@ -152,6 +179,16 @@ const App: React.FC = () => {
     setCurrentPage('Dashboard'); // Reset to default page on logout
   };
 
+  const handleResetData = () => {
+    setMembers(MOCK_MEMBERS);
+    setContributions(MOCK_CONTRIBUTIONS);
+    setMessages(MOCK_MESSAGES);
+    setEvents(MOCK_EVENTS);
+    setPhotos(MOCK_PHOTOS);
+    setNotifications([]);
+    addNotification({ type: 'success', title: 'Réinitialisation terminée', message: 'Les données de l\'application ont été réinitialisées.' });
+  };
+
   const renderPage = () => {
     switch (currentPage) {
       case 'Dashboard':
@@ -169,7 +206,15 @@ const App: React.FC = () => {
        case 'Documentation':
         return <Documentation />;
        case 'Paramètres':
-        return <Settings />;
+        return <Settings 
+                 userProfile={userProfile}
+                 setProfileModalOpen={setProfileModalOpen}
+                 theme={theme}
+                 toggleTheme={toggleTheme}
+                 notificationPreferences={notificationPreferences}
+                 setNotificationPreferences={setNotificationPreferences}
+                 onResetData={handleResetData}
+               />;
       default:
         return <Dashboard members={members} contributions={contributions} theme={theme} />;
     }
@@ -207,16 +252,26 @@ const App: React.FC = () => {
         <Header 
           title={pageTitles[currentPage]} 
           userProfile={userProfile}
-          setUserProfile={setUserProfile}
           onLogout={handleLogout}
           theme={theme}
           toggleTheme={toggleTheme}
           setSidebarOpen={setSidebarOpen}
+          setProfileModalOpen={setProfileModalOpen}
         />
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-800 p-4 sm:p-6 md:p-8">
           {renderPage()}
         </main>
       </div>
+      {isProfileModalOpen && (
+            <ProfileModal
+                user={userProfile}
+                onSave={(updatedProfile) => {
+                    setUserProfile(updatedProfile);
+                    setProfileModalOpen(false);
+                }}
+                onClose={() => setProfileModalOpen(false)}
+            />
+        )}
     </div>
   );
 };
