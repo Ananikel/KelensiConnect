@@ -301,7 +301,7 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md">
                         <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
-                            <h3 className="text-lg font-semibold dark:text-gray-200">Ajouter une Contribution</h3>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200">Ajouter une Contribution</h3>
                             <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label="Fermer"><CloseIcon /></button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">

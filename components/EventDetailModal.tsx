@@ -130,7 +130,7 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, members, onC
                         </div>
                     </div>
                 </div>
-                <div className="bg-gray-50 dark:bg-gray-700 px-6 py-4 flex justify-end">
+                <div className="bg-gray-50 dark:bg-gray-700/50 px-6 py-4 flex justify-end">
                     <button onClick={onClose} className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Fermer</button>
                 </div>
             </div>

@@ -304,10 +304,10 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div className="flex items-center space-x-4">
-                                            <button onClick={() => handleOpenEditModal(member)} className="text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" aria-label={`Modifier ${member.name}`}>
+                                            <button onClick={() => handleOpenEditModal(member)} className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" aria-label={`Modifier ${member.name}`}>
                                                 <EditIcon />
                                             </button>
-                                            <button onClick={() => handleOpenDeleteModal(member)} className="text-red-600 hover:text-red-900 dark:hover:text-red-400 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" aria-label={`Supprimer ${member.name}`}>
+                                            <button onClick={() => handleOpenDeleteModal(member)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" aria-label={`Supprimer ${member.name}`}>
                                                 <DeleteIcon />
                                             </button>
                                         </div>
@@ -334,7 +334,7 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg max-h-full overflow-y-auto">
                         <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
-                            <h3 className="text-lg font-semibold dark:text-gray-200">Ajouter un nouveau membre</h3>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200">Ajouter un nouveau membre</h3>
                             <button onClick={handleCloseAddModal} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label="Fermer">
                                <CloseIcon />
                             </button>
@@ -396,7 +396,7 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg max-h-full overflow-y-auto">
                         <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
-                            <h3 className="text-lg font-semibold dark:text-gray-200">Modifier le membre</h3>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200">Modifier le membre</h3>
                             <button onClick={handleCloseEditModal} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label="Fermer">
                                <CloseIcon />
                             </button>
