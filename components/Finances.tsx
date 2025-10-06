@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Contribution, Member } from '../types';
 import SearchIcon from './icons/SearchIcon';
@@ -6,6 +5,7 @@ import PlusIcon from './icons/PlusIcon';
 import CloseIcon from './icons/CloseIcon';
 import DownloadIcon from './icons/DownloadIcon';
 import Pagination from './Pagination';
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface FinancesProps {
     members: Member[];
@@ -14,6 +14,11 @@ interface FinancesProps {
 }
 
 const ITEMS_PER_PAGE = 10;
+const COLORS = {
+    'Cotisation': '#4f46e5', // Indigo
+    'Don': '#10b981',       // Green
+    'Événement': '#f59e0b', // Amber
+};
 
 const Finances: React.FC<FinancesProps> = ({ members, contributions, setContributions }) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -21,6 +26,13 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
     const [typeFilter, setTypeFilter] = useState('Tous');
     const [isModalOpen, setModalOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
+    
+    const availableYears = useMemo(() => {
+        const years = new Set(contributions.map(c => new Date(c.date).getFullYear()));
+        return Array.from(years).sort((a, b) => b - a);
+    }, [contributions]);
+
+    const [selectedYear, setSelectedYear] = useState(availableYears[0] || new Date().getFullYear());
 
     // Form state
     const [memberId, setMemberId] = useState<number | ''>('');
@@ -38,6 +50,24 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
             return matchesSearch && matchesStatus && matchesType;
         });
     }, [contributions, searchTerm, statusFilter, typeFilter]);
+
+    const yearlyData = useMemo(() => {
+        const contributionsInYear = contributions.filter(c => new Date(c.date).getFullYear() === selectedYear);
+
+        const totalAmount = contributionsInYear.reduce((sum, c) => sum + c.amount, 0);
+        
+        const dataByType = contributionsInYear.reduce((acc, c) => {
+            acc[c.type] = (acc[c.type] || 0) + c.amount;
+            return acc;
+        }, {} as Record<Contribution['type'], number>);
+
+        const pieData = Object.entries(dataByType).map(([name, value]) => ({
+            name,
+            value,
+        }));
+
+        return { pieData, totalAmount };
+    }, [contributions, selectedYear]);
     
     useEffect(() => {
         setCurrentPage(1);
@@ -116,7 +146,68 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
     };
 
     return (
-        <>
+        <div className="space-y-6">
+            {/* Year Statistics and Chart */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                     <h3 className="text-lg font-semibold text-gray-700 mb-4">Répartition par Type de Contribution ({selectedYear})</h3>
+                     {yearlyData.pieData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={300}>
+                            <PieChart>
+                                <Pie
+                                    data={yearlyData.pieData}
+                                    cx="50%"
+                                    cy="50%"
+                                    labelLine={false}
+                                    outerRadius={110}
+                                    fill="#8884d8"
+                                    dataKey="value"
+                                    nameKey="name"
+                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                >
+                                    {yearlyData.pieData.map((entry) => (
+                                        <Cell key={`cell-${entry.name}`} fill={COLORS[entry.name as keyof typeof COLORS]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip formatter={(value: number) => `${value.toLocaleString('fr-FR')} CFA`} />
+                                <Legend />
+                            </PieChart>
+                        </ResponsiveContainer>
+                     ) : (
+                         <div className="flex items-center justify-center h-[300px] text-gray-500">
+                            Aucune donnée pour l'année {selectedYear}.
+                         </div>
+                     )}
+                </div>
+                 <div className="bg-white p-6 rounded-lg shadow-md flex flex-col justify-between">
+                    <div>
+                        <h3 className="text-lg font-semibold text-gray-700 mb-4">Statistiques Annuelles</h3>
+                        <div className="mb-4">
+                            <label htmlFor="year-select" className="block text-sm font-medium text-gray-700 mb-1">
+                                Sélectionner une année
+                            </label>
+                            <select 
+                                id="year-select" 
+                                value={selectedYear}
+                                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                                className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            >
+                                {availableYears.map(year => (
+                                    <option key={year} value={year}>{year}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                    <div className="text-center bg-gray-50 p-4 rounded-lg">
+                        <p className="text-sm font-medium text-gray-500">Total des Contributions pour {selectedYear}</p>
+                        <p className="text-3xl font-bold text-gray-800 mt-1">
+                            {yearlyData.totalAmount.toLocaleString('fr-FR')} CFA
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Contributions Table */}
             <div className="bg-white p-6 rounded-lg shadow-md">
                 <div className="flex flex-col md:flex-row items-center justify-between mb-6 space-y-4 md:space-y-0">
                     <div className="relative w-full md:w-auto">
@@ -245,7 +336,7 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, setContribu
                     </div>
                 </div>
             )}
-        </>
+        </div>
     );
 };
 

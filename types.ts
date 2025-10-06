@@ -7,6 +7,7 @@ export interface Member {
   email: string;
   phone: string;
   joinDate: string;
+  birthDate: string; // Added for birthday feature
   status: 'Actif' | 'Inactif';
   avatar: string;
   role: string;

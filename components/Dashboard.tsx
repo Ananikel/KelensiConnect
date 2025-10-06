@@ -2,6 +2,7 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Contribution, Member } from '../types';
+import UpcomingBirthdays from './UpcomingBirthdays';
 
 interface DashboardProps {
     members: Member[];
@@ -67,22 +68,24 @@ const Dashboard: React.FC<DashboardProps> = ({ members, contributions }) => {
                 </div>
             </div>
 
-            {/* Charts */}
+            {/* Monthly Chart */}
+            <div className="bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-lg font-semibold text-gray-700 mb-4">Contributions Mensuelles</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={contributionData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip formatter={(value: number) => `${value.toLocaleString('fr-FR')} CFA`} />
+                        <Legend />
+                        <Bar dataKey="montant" fill="#4f46e5" name="Montant (CFA)"/>
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+
+            {/* Lists */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-4">Contributions Mensuelles</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={contributionData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" />
-                            <YAxis />
-                            <Tooltip formatter={(value: number) => `${value.toLocaleString('fr-FR')} CFA`} />
-                            <Legend />
-                            <Bar dataKey="montant" fill="#4f46e5" name="Montant (CFA)"/>
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-                 <div className="bg-white p-6 rounded-lg shadow-md">
                     <h3 className="text-lg font-semibold text-gray-700 mb-4">Contributions Récentes</h3>
                     <div className="space-y-4">
                         {recentContributions.map((contrib: Contribution) => (
@@ -104,6 +107,7 @@ const Dashboard: React.FC<DashboardProps> = ({ members, contributions }) => {
                         ))}
                     </div>
                 </div>
+                <UpcomingBirthdays members={members} />
             </div>
         </div>
     );

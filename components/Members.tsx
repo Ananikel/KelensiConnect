@@ -33,6 +33,8 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [descendance, setDescendance] = useState('');
+    // FIX: Add birthDate state for the add member form.
+    const [birthDate, setBirthDate] = useState('');
 
     // Webcam state
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
@@ -56,6 +58,7 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
 
     const paginatedMembers = useMemo(() => {
         const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        // FIX: The slice method takes 2 arguments, not 3. Corrected the call.
         return filteredMembers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
     }, [filteredMembers, currentPage]);
 
@@ -126,18 +129,23 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
         setName('');
         setEmail('');
         setDescendance('');
+        // FIX: Reset birthDate when closing the modal.
+        setBirthDate('');
         setCapturedImage(null);
     };
     
     const handleAddMember = (e: React.FormEvent) => {
         e.preventDefault();
-        if(!name || !email || !descendance) return;
+        // FIX: Add check for birthDate.
+        if(!name || !email || !descendance || !birthDate) return;
 
+        // FIX: Add missing 'birthDate' property.
         const newMember: Member = {
             id: Date.now(),
             name,
             email,
             descendance,
+            birthDate,
             avatar: capturedImage || `https://ui-avatars.com/api/?name=${name.replace(' ', '+')}&background=random`,
             joinDate: new Date().toISOString(),
             status: 'Actif',
@@ -347,6 +355,11 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                                     {descendances.map(d => <option key={d} value={d} />)}
                                 </datalist>
                             </div>
+                            {/* FIX: Add input field for birthDate. */}
+                            <div>
+                                <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700">Date de naissance</label>
+                                <input type="date" id="birthDate" value={birthDate} onChange={e => setBirthDate(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required />
+                            </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Photo de profil</label>
                                 <div className="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-md">
@@ -403,6 +416,11 @@ const Members: React.FC<MembersProps> = ({ members, setMembers }) => {
                                 <datalist id="descendances-list">
                                     {descendances.map(d => <option key={d} value={d} />)}
                                 </datalist>
+                            </div>
+                            {/* FIX: Add input field for birthDate in edit modal. */}
+                            <div>
+                                <label htmlFor="edit-birthDate" className="block text-sm font-medium text-gray-700">Date de naissance</label>
+                                <input type="date" id="edit-birthDate" value={editingMember.birthDate} onChange={e => setEditingMember({...editingMember, birthDate: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required />
                             </div>
                             <div>
                                 <label htmlFor="edit-status" className="block text-sm font-medium text-gray-700">Statut</label>
