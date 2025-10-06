@@ -36,6 +36,7 @@ export interface ChatMessage {
   text: string;
   timestamp: string;
   attachment?: Attachment;
+  status?: 'sent' | 'delivered' | 'read';
 }
 
 export type RSVPStatus = 'Attending' | 'Maybe' | 'Not Attending';

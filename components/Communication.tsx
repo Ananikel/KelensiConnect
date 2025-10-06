@@ -10,6 +10,7 @@ import VideoIcon from './icons/VideoIcon';
 import PhoneIcon from './icons/PhoneIcon';
 import VideoCallModal from './VideoCallModal';
 import ArrowLeftIcon from './icons/ArrowLeftIcon';
+import ReadReceiptIcon from './icons/ReadReceiptIcon';
 
 interface CommunicationProps {
     members: Member[];
@@ -22,17 +23,39 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
     const [newMessage, setNewMessage] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [attachment, setAttachment] = useState<File | null>(null);
-    const [isCalling, setIsCalling] = useState(false);
+    const [callType, setCallType] = useState<'audio' | 'video' | null>(null);
+    const [isMemberTyping, setIsMemberTyping] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    // FIX: Replaced NodeJS.Timeout with a browser-compatible type for setTimeout's return value.
+    const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
+    // Simulate 'delivered' and 'read' receipts
+    useEffect(() => {
+        // Mark messages as read when a conversation is opened
+        if (selectedId !== null) {
+            const timer = setTimeout(() => {
+                setMessages(prev => 
+                    prev.map(msg => 
+                        (msg.receiverId === 'admin' && (msg.senderId === selectedId || selectedId === 0)) && msg.status !== 'read' 
+                        ? { ...msg, status: 'read' } 
+                        : msg
+                    )
+                );
+            }, 1000); // Simulate reading after 1 second
+            return () => clearTimeout(timer);
+        }
+    }, [selectedId, setMessages]);
+
+
     useEffect(() => {
         scrollToBottom();
-    }, [messages, selectedId]);
+    }, [messages, selectedId, isMemberTyping]);
     
      useEffect(() => {
         if(attachment) {
@@ -45,6 +68,25 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
         members.filter(member => 
             member.name.toLowerCase().includes(searchTerm.toLowerCase())
         ), [members, searchTerm]);
+        
+    const conversations = useMemo(() => {
+        const convos = new Map<number | 0, ChatMessage[]>();
+        members.forEach(m => convos.set(m.id, []));
+        convos.set(0, []); // for group chat
+        messages.forEach(msg => {
+            if (msg.receiverId === 0) {
+                 convos.get(0)?.push(msg);
+            } else {
+                const memberId = msg.senderId === 'admin' ? msg.receiverId : msg.senderId;
+                if (memberId !== 'admin' && convos.has(memberId)) {
+                    convos.get(memberId)?.push(msg);
+                }
+            }
+        });
+        convos.forEach(msgs => msgs.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()));
+        return convos;
+    }, [messages, members]);
+
 
     const selectedMember = useMemo(() => 
         members.find(m => m.id === selectedId), 
@@ -52,51 +94,71 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
 
     const conversation = useMemo(() => {
         if (selectedId === null) return [];
-        const targetReceiverId = selectedId === 0 ? 0 : selectedId;
-        return messages.filter(msg => 
-            (msg.senderId === 'admin' && msg.receiverId === targetReceiverId) ||
-            (msg.senderId === targetReceiverId && msg.receiverId === 'admin') ||
-            (targetReceiverId === 0 && msg.receiverId === 0) // Group chat messages
-        ).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-    }, [messages, selectedId]);
+        return conversations.get(selectedId) || [];
+    }, [conversations, selectedId]);
 
     const handleSendMessage = (e: React.FormEvent) => {
         e.preventDefault();
         if ((!newMessage.trim() && !attachment) || selectedId === null) return;
 
+        const messageId = Date.now();
+        const createMessage = (attachmentData?: Attachment): ChatMessage => ({
+            id: messageId,
+            senderId: 'admin',
+            receiverId: selectedId,
+            text: attachment ? newMessage.trim() : newMessage.trim(),
+            timestamp: new Date().toISOString(),
+            status: 'sent',
+            attachment: attachmentData,
+        });
+
         if (attachment) {
             const reader = new FileReader();
             reader.onload = (e) => {
-                const newMsg: ChatMessage = {
-                    id: Date.now(),
-                    senderId: 'admin',
-                    receiverId: selectedId,
-                    text: newMessage.trim(),
-                    timestamp: new Date().toISOString(),
-                    attachment: {
-                        name: attachment.name,
-                        type: attachment.type,
-                        url: e.target?.result as string,
-                    }
-                };
+                const newMsg = createMessage({
+                    name: attachment.name,
+                    type: attachment.type,
+                    url: e.target?.result as string,
+                });
                 setMessages(prev => [...prev, newMsg]);
             };
             reader.readAsDataURL(attachment);
         } else {
-             const newMsg: ChatMessage = {
-                id: Date.now(),
-                senderId: 'admin',
-                receiverId: selectedId,
-                text: newMessage.trim(),
-                timestamp: new Date().toISOString(),
-            };
+             const newMsg = createMessage();
             setMessages(prev => [...prev, newMsg]);
         }
         
+        // Simulate delivered status
+        setTimeout(() => {
+            setMessages(prev => prev.map(m => m.id === messageId ? { ...m, status: 'delivered' } : m));
+        }, 1500);
+
         setNewMessage('');
         setAttachment(null);
         if(fileInputRef.current) fileInputRef.current.value = "";
     };
+
+    // Simulate member typing response
+    useEffect(() => {
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+        }
+
+        if (newMessage.trim().length > 0) {
+            typingTimeoutRef.current = setTimeout(() => {
+                if (selectedId !== null && selectedId !== 0) {
+                    setIsMemberTyping(true);
+                    setTimeout(() => setIsMemberTyping(false), 3000); // Show for 3 seconds
+                }
+            }, 2000); // Start typing simulation after 2s of admin inactivity
+        }
+
+        return () => {
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
+        };
+    }, [newMessage, selectedId]);
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -104,6 +166,11 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
         }
     };
     
+    const handleStartCall = (type: 'audio' | 'video') => {
+        if (selectedId === null) return;
+        setCallType(type);
+    };
+
     const MessageAttachment: React.FC<{attachment: Attachment}> = ({attachment}) => {
         const isImage = attachment.type.startsWith('image/');
         
@@ -157,20 +224,29 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
                             </div>
                         </button>
 
-                        {filteredMembers.map(member => (
-                            <button
-                                type="button"
-                                key={member.id}
-                                onClick={() => setSelectedId(member.id)}
-                                className={`flex items-center p-4 cursor-pointer w-full text-left hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700 ${selectedId === member.id ? 'bg-indigo-50 dark:bg-indigo-900/50' : ''}`}
-                            >
-                                <img src={member.avatar} alt={member.name} className="w-12 h-12 rounded-full object-cover mr-4"/>
-                                <div>
-                                    <p className="font-semibold text-gray-800 dark:text-gray-200">{member.name}</p>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">{member.role}</p>
-                                </div>
-                            </button>
-                        ))}
+                        {filteredMembers.map(member => {
+                            const lastMessage = conversations.get(member.id)?.slice(-1)[0];
+                            return (
+                                <button
+                                    type="button"
+                                    key={member.id}
+                                    onClick={() => setSelectedId(member.id)}
+                                    className={`flex items-center p-4 cursor-pointer w-full text-left hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700 ${selectedId === member.id ? 'bg-indigo-50 dark:bg-indigo-900/50' : ''}`}
+                                >
+                                    <img src={member.avatar} alt={member.name} className="w-12 h-12 rounded-full object-cover mr-4"/>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-semibold text-gray-800 dark:text-gray-200 truncate">{member.name}</p>
+                                         {lastMessage ? (
+                                             <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                                {lastMessage.senderId === 'admin' && 'Vous: '}{lastMessage.text || 'Pièce jointe'}
+                                             </p>
+                                        ) : (
+                                             <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{member.role}</p>
+                                        )}
+                                    </div>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -200,16 +276,16 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
                                 </div>
                                 <div className="flex-shrink-0">
                                     {selectedId === 0 ? (
-                                        <button onClick={() => setIsCalling(true)} className="flex items-center space-x-2 px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" aria-label="Démarrer un appel de groupe">
+                                        <button onClick={() => handleStartCall('video')} className="flex items-center space-x-2 px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" aria-label="Démarrer un appel de groupe">
                                             <VideoIcon />
                                             <span className="hidden sm:inline">Appel de groupe</span>
                                         </button>
                                     ) : (
                                         <div className="flex items-center space-x-2 sm:space-x-4">
-                                            <button onClick={() => setIsCalling(true)} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label="Démarrer un appel audio">
+                                            <button onClick={() => handleStartCall('audio')} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label="Démarrer un appel audio">
                                                 <PhoneIcon />
                                             </button>
-                                            <button onClick={() => setIsCalling(true)} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label="Démarrer un appel vidéo">
+                                            <button onClick={() => handleStartCall('video')} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label="Démarrer un appel vidéo">
                                                 <VideoIcon />
                                             </button>
                                         </div>
@@ -230,12 +306,24 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
                                                { msg.attachment && <MessageAttachment attachment={msg.attachment} /> }
                                                <p className={`text-xs mt-1 ${
                                                    msg.senderId === 'admin' ? 'text-indigo-200' : 'text-gray-500 dark:text-gray-400'
-                                               } text-right`}>
-                                                   {new Date(msg.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                               } text-right flex items-center justify-end space-x-1`}>
+                                                   <span>{new Date(msg.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
+                                                   {msg.senderId === 'admin' && msg.status && <ReadReceiptIcon status={msg.status} />}
                                                </p>
                                            </div>
                                        </div>
                                    ))}
+                                   {isMemberTyping && (
+                                        <div className="flex justify-start">
+                                            <div className="max-w-md lg:max-w-lg px-4 py-3 rounded-2xl bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-none">
+                                                <div className="flex items-center space-x-1">
+                                                    <span className="h-2 w-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                                                    <span className="h-2 w-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                                                    <span className="h-2 w-2 bg-gray-400 rounded-full animate-bounce"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                   )}
                                    <div ref={messagesEndRef} />
                                 </div>
                             </div>
@@ -273,12 +361,13 @@ const Communication: React.FC<CommunicationProps> = ({ members, messages, setMes
                     )}
                 </div>
             </div>
-            {isCalling && selectedId !== null && (
+            {callType && selectedId !== null && (
                 <VideoCallModal 
                     isGroupCall={selectedId === 0}
+                    callType={callType}
                     targetMember={selectedId !== 0 ? selectedMember : undefined}
                     allMembers={members}
-                    onClose={() => setIsCalling(false)}
+                    onClose={() => setCallType(null)}
                 />
             )}
         </>

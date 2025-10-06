@@ -8,14 +8,15 @@ import PhoneIcon from './icons/PhoneIcon';
 
 interface VideoCallModalProps {
     isGroupCall: boolean;
+    callType: 'audio' | 'video';
     targetMember?: Member;
     allMembers?: Member[];
     onClose: () => void;
 }
 
-const VideoCallModal: React.FC<VideoCallModalProps> = ({ isGroupCall, targetMember, allMembers, onClose }) => {
+const VideoCallModal: React.FC<VideoCallModalProps> = ({ isGroupCall, callType, targetMember, allMembers, onClose }) => {
     const [isMicOn, setMicOn] = useState(true);
-    const [isCameraOn, setCameraOn] = useState(true);
+    const [isCameraOn, setCameraOn] = useState(callType === 'video');
     const localVideoRef = useRef<HTMLVideoElement>(null);
     const streamRef = useRef<MediaStream | null>(null);
 
@@ -29,10 +30,17 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({ isGroupCall, targetMemb
     useEffect(() => {
         const startStream = async () => {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                const constraints = {
+                    audio: true,
+                    video: callType === 'video',
+                };
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 streamRef.current = stream;
                 if (localVideoRef.current) {
                     localVideoRef.current.srcObject = stream;
+                }
+                 if (callType === 'audio') {
+                    setCameraOn(false);
                 }
             } catch (err) {
                 console.error("Erreur d'accès à la caméra/micro:", err);
@@ -46,7 +54,7 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({ isGroupCall, targetMemb
         return () => {
             stopStream();
         };
-    }, [onClose]);
+    }, [onClose, callType]);
 
     const toggleMic = () => {
         if (streamRef.current) {
@@ -58,7 +66,7 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({ isGroupCall, targetMemb
     };
     
     const toggleCamera = () => {
-        if (streamRef.current) {
+        if (streamRef.current && callType === 'video') {
              streamRef.current.getVideoTracks().forEach(track => {
                 track.enabled = !isCameraOn;
             });
@@ -71,7 +79,7 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({ isGroupCall, targetMemb
         onClose();
     };
 
-    const callTitle = isGroupCall ? "Appel de Groupe" : `Appel avec ${targetMember?.name}`;
+    const callTitle = isGroupCall ? "Appel de Groupe" : `${callType === 'video' ? 'Appel Vidéo' : 'Appel Audio'} avec ${targetMember?.name}`;
 
     return (
         <div className="fixed inset-0 bg-gray-900 flex flex-col items-center justify-center z-50 text-white">
@@ -90,22 +98,32 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({ isGroupCall, targetMemb
                              </div>
                          ))}
                      </div>
+                ) : callType === 'audio' ? (
+                     <div className="w-full h-full bg-gray-800 flex flex-col items-center justify-center">
+                        <img src={targetMember?.avatar} alt={targetMember?.name} className="w-40 h-40 rounded-full object-cover ring-4 ring-gray-600"/>
+                        <p className="mt-4 text-2xl font-semibold">{targetMember?.name}</p>
+                        <p className="text-gray-400">Appel audio en cours...</p>
+                    </div>
                 ) : (
                     <div className="w-full h-full bg-black flex items-center justify-center">
-                        <img src={targetMember?.avatar} alt={targetMember?.name} className="w-40 h-40 rounded-full object-cover opacity-50"/>
+                         <div className="text-center text-gray-400">
+                             <img src={targetMember?.avatar} alt={targetMember?.name} className="w-40 h-40 rounded-full object-cover opacity-50 mx-auto"/>
+                             <p className="mt-4">Connexion avec {targetMember?.name}...</p>
+                        </div>
                     </div>
                 )}
             </div>
 
-            {/* Local Video */}
-            <div className="absolute bottom-24 right-5 w-48 h-36 md:w-64 md:h-48 rounded-lg shadow-lg overflow-hidden border-2 border-gray-600 z-20">
-                <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-full object-cover"></video>
-                {!isCameraOn && (
-                     <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center">
-                        <p className="text-xs">Caméra coupée</p>
-                     </div>
-                )}
-            </div>
+            {callType === 'video' && (
+                <div className="absolute bottom-24 right-5 w-48 h-36 md:w-64 md:h-48 rounded-lg shadow-lg overflow-hidden border-2 border-gray-600 z-20">
+                    <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-full object-cover"></video>
+                    {!isCameraOn && (
+                         <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center">
+                            <p className="text-xs">Caméra coupée</p>
+                         </div>
+                    )}
+                </div>
+            )}
 
             {/* Controls */}
             <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center space-x-4 bg-gray-900/70 backdrop-blur-sm p-3 rounded-full z-20">
@@ -116,13 +134,15 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({ isGroupCall, targetMemb
                 >
                     {isMicOn ? <MicOnIcon /> : <MicOffIcon />}
                 </button>
-                <button 
-                    onClick={toggleCamera} 
-                    className={`p-3 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white focus:ring-offset-gray-900 ${isCameraOn ? 'bg-gray-600 hover:bg-gray-500' : 'bg-red-600 hover:bg-red-500'}`}
-                    aria-label={isCameraOn ? "Couper la caméra" : "Activer la caméra"}
-                >
-                    {isCameraOn ? <VideoOnIcon /> : <VideoOffIcon />}
-                </button>
+                {callType === 'video' && (
+                    <button 
+                        onClick={toggleCamera} 
+                        className={`p-3 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white focus:ring-offset-gray-900 ${isCameraOn ? 'bg-gray-600 hover:bg-gray-500' : 'bg-red-600 hover:bg-red-500'}`}
+                        aria-label={isCameraOn ? "Couper la caméra" : "Activer la caméra"}
+                    >
+                        {isCameraOn ? <VideoOnIcon /> : <VideoOffIcon />}
+                    </button>
+                )}
                 <button onClick={handleHangUp} className="p-3 bg-red-600 rounded-full hover:bg-red-500 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white focus:ring-offset-gray-900" aria-label="Raccrocher">
                     <div className="rotate-[135deg]">
                         <PhoneIcon />

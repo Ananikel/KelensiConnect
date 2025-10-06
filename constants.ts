@@ -48,12 +48,12 @@ export const MOCK_CONTRIBUTIONS: Contribution[] = [
 
 export const MOCK_MESSAGES: ChatMessage[] = [
     { id: 1, senderId: 1, receiverId: 'admin', text: 'Bonjour, j\'ai une question sur ma cotisation.', timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString() },
-    { id: 2, senderId: 'admin', receiverId: 1, text: 'Bonjour Kokoè, bien sûr. Quelle est votre question ?', timestamp: new Date(Date.now() - 1000 * 60 * 14).toISOString() },
+    { id: 2, senderId: 'admin', receiverId: 1, text: 'Bonjour Kokoè, bien sûr. Quelle est votre question ?', timestamp: new Date(Date.now() - 1000 * 60 * 14).toISOString(), status: 'read' },
     { id: 3, senderId: 1, receiverId: 'admin', text: 'Je voudrais savoir si mon dernier paiement a bien été enregistré.', timestamp: new Date(Date.now() - 1000 * 60 * 13).toISOString() },
-    { id: 4, senderId: 'admin', receiverId: 1, text: 'Je vérifie cela tout de suite.', timestamp: new Date(Date.now() - 1000 * 60 * 13).toISOString() },
+    { id: 4, senderId: 'admin', receiverId: 1, text: 'Je vérifie cela tout de suite.', timestamp: new Date(Date.now() - 1000 * 60 * 13).toISOString(), status: 'read' },
     
     { id: 5, senderId: 5, receiverId: 'admin', text: 'Salut ! Juste pour dire que j\'ai adoré le dernier événement.', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString() },
-    { id: 6, senderId: 'admin', receiverId: 5, text: 'Merci beaucoup ! Nous sommes ravis que ça vous ait plu.', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2 + 1000 * 30).toISOString() },
+    { id: 6, senderId: 'admin', receiverId: 5, text: 'Merci beaucoup ! Nous sommes ravis que ça vous ait plu.', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2 + 1000 * 30).toISOString(), status: 'read' },
 
     { id: 7, senderId: 12, receiverId: 'admin', text: 'Pourrait-on avoir le compte rendu de la dernière réunion ?', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString() },
 ];
