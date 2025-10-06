@@ -5,18 +5,26 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
-    const [email, setEmail] = useState('');
+    const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
+    const ADMIN_EMAIL = 'admin@kelensiconnect.com';
+    // As per constants.ts, this is the admin user's name
+    const ADMIN_NAME = 'Adakou Kafui Romaine KELENSI'; 
+    const ADMIN_PASSWORD = 'password';
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Mock authentication
-        if (email === 'admin@kelensiconnect.com' && password === 'password') {
+        // Mock authentication allowing email or full name (case-insensitive)
+        if (
+            (identifier.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase() || identifier.trim().toLowerCase() === ADMIN_NAME.toLowerCase()) && 
+            password === ADMIN_PASSWORD
+        ) {
             setError('');
             onLogin();
         } else {
-            setError('Email ou mot de passe incorrect.');
+            setError('Identifiant ou mot de passe incorrect.');
         }
     };
 
@@ -29,19 +37,19 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 </div>
                 <form className="space-y-6" onSubmit={handleSubmit}>
                     <div>
-                        <label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Adresse Email
+                        <label htmlFor="identifier" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Email ou Nom complet
                         </label>
                         <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            autoComplete="email"
+                            id="identifier"
+                            name="identifier"
+                            type="text"
+                            autoComplete="username"
                             required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            value={identifier}
+                            onChange={(e) => setIdentifier(e.target.value)}
                             className="w-full px-3 py-2 mt-1 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
-                            placeholder="you@example.com"
+                            placeholder="you@example.com ou votre nom complet"
                         />
                     </div>
                     <div>
@@ -67,7 +75,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     
                     <div className="p-3 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-500/50 rounded-md text-sm text-indigo-700 dark:text-indigo-300">
                         <p className="font-semibold">Données pour le test :</p>
-                        <p><strong>Email :</strong> admin@kelensiconnect.com</p>
+                        <p><strong>Identifiant :</strong> admin@kelensiconnect.com <br/> <span className="ml-1">ou 'Adakou Kafui Romaine KELENSI'</span></p>
                         <p><strong>Mot de passe :</strong> password</p>
                     </div>
 
