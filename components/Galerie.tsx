@@ -62,7 +62,7 @@ const Galerie: React.FC<GalerieProps> = ({ photos, setPhotos }) => {
     
     const handleSavePhoto = (photoData: Omit<Photo, 'id' | 'uploadDate'> & { id?: number }) => {
         if (photoData.id) { // Editing
-            setPhotos(photos.map(p => p.id === photoData.id ? { ...p, ...photoData } : p));
+            setPhotos(photos.map(p => p.id === photoData.id ? { ...p, ...photoData, url: photoData.url } as Photo : p));
         } else { // Adding
             const newPhoto: Photo = { 
                 ...photoData,
@@ -84,6 +84,10 @@ const Galerie: React.FC<GalerieProps> = ({ photos, setPhotos }) => {
             setPhotos(photos.filter(p => p.id !== photoToDelete.id));
             setDeleteModalOpen(false);
             setPhotoToDelete(null);
+            // If the deleted photo was the one being previewed, close preview
+            if (isPreviewOpen && filteredPhotos[previewIndex]?.id === photoToDelete.id) {
+                setPreviewOpen(false);
+            }
         }
     };
 
@@ -94,7 +98,7 @@ const Galerie: React.FC<GalerieProps> = ({ photos, setPhotos }) => {
             setPreviewOpen(true);
         }
     };
-
+    
     const handleNextPreview = useCallback(() => {
         setPreviewIndex(prev => (prev + 1) % filteredPhotos.length);
     }, [filteredPhotos.length]);
@@ -102,7 +106,7 @@ const Galerie: React.FC<GalerieProps> = ({ photos, setPhotos }) => {
     const handlePrevPreview = useCallback(() => {
         setPreviewIndex(prev => (prev - 1 + filteredPhotos.length) % filteredPhotos.length);
     }, [filteredPhotos.length]);
-    
+
     const handleExport = () => {
         const headers = ['ID', 'Titre', 'Description', "Date d'ajout", 'URL'];
         const csvRows = [
@@ -128,30 +132,32 @@ const Galerie: React.FC<GalerieProps> = ({ photos, setPhotos }) => {
         const files = event.target.files;
         if (!files) return;
 
-        const newPhotos: Omit<Photo, 'id' | 'uploadDate'>[] = [];
         const filePromises = Array.from(files).map(file => {
-            return new Promise<void>(resolve => {
+            return new Promise<Photo>((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    newPhotos.push({
+                    const newPhoto: Photo = {
+                        id: Date.now() + Math.random(),
+                        uploadDate: new Date().toISOString(),
                         url: e.target?.result as string,
                         title: file.name.split('.').slice(0, -1).join('.'),
                         description: `Importé le ${new Date().toLocaleDateString('fr-FR')}`
-                    });
-                    resolve();
+                    };
+                    resolve(newPhoto);
                 };
+                reader.onerror = reject;
                 reader.readAsDataURL(file);
             });
         });
 
-        Promise.all(filePromises).then(() => {
-            const photosToAdd = newPhotos.map(p => ({
-                ...p,
-                id: Date.now() + Math.random(),
-                uploadDate: new Date().toISOString()
-            }));
-            setPhotos(prev => [...photosToAdd, ...prev]);
+        Promise.all(filePromises).then((newPhotos) => {
+            setPhotos(prev => [...newPhotos, ...prev]);
         });
+        
+        // Reset file input
+        if (event.target) {
+            event.target.value = '';
+        }
     };
 
     return (
@@ -191,13 +197,15 @@ const Galerie: React.FC<GalerieProps> = ({ photos, setPhotos }) => {
                     <>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                             {paginatedPhotos.map(photo => (
-                                <div key={photo.id} className="group relative rounded-lg overflow-hidden shadow-lg cursor-pointer" onClick={() => handleOpenPreview(photo)}>
-                                    <img src={photo.url} alt={photo.title} className="w-full h-48 object-cover transform transition-transform duration-300 group-hover:scale-110" />
-                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-300"></div>
-                                    <div className="absolute bottom-0 left-0 p-3 w-full bg-gradient-to-t from-black via-black/70 to-transparent">
-                                        <h3 className="text-white font-bold truncate">{photo.title}</h3>
-                                        <p className="text-gray-300 text-xs">{new Date(photo.uploadDate).toLocaleDateString('fr-FR')}</p>
-                                    </div>
+                                <div key={photo.id} className="group relative rounded-lg overflow-hidden shadow-lg" >
+                                    <button type="button" className="w-full h-full block text-left focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-lg" onClick={() => handleOpenPreview(photo)}>
+                                        <img src={photo.url} alt={photo.title} className="w-full h-48 object-cover transform transition-transform duration-300 group-hover:scale-110" />
+                                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-300"></div>
+                                        <div className="absolute bottom-0 left-0 p-3 w-full bg-gradient-to-t from-black via-black/70 to-transparent">
+                                            <h3 className="text-white font-bold truncate">{photo.title}</h3>
+                                            <p className="text-gray-300 text-xs">{new Date(photo.uploadDate).toLocaleDateString('fr-FR')}</p>
+                                        </div>
+                                    </button>
                                     <div className="absolute top-2 right-2 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300" onClick={e => e.stopPropagation()}>
                                         <button onClick={() => handleOpenEditModal(photo)} className="bg-white/80 p-1.5 rounded-full text-gray-800 hover:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500" aria-label="Modifier"><EditIcon /></button>
                                         <button onClick={() => handleOpenDeleteModal(photo)} className="bg-white/80 p-1.5 rounded-full text-gray-800 hover:bg-white focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="Supprimer"><DeleteIcon /></button>
@@ -226,7 +234,7 @@ const AddEditPhotoModal: React.FC<{ photo: Photo | null; onSave: (data: Omit<Pho
     const [title, setTitle] = useState(photo?.title || '');
     const [description, setDescription] = useState(photo?.description || '');
     const [url, setUrl] = useState(photo?.url || '');
-    const [isTakingPhoto, setTakingPhoto] = useState(false);
+    const [isCameraActive, setCameraActive] = useState(false);
     const [cameraError, setCameraError] = useState<string | null>(null);
     
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -242,6 +250,7 @@ const AddEditPhotoModal: React.FC<{ photo: Photo | null; onSave: (data: Omit<Pho
     }, []);
     
     useEffect(() => {
+        // Cleanup camera on component unmount
         return () => stopCamera();
     }, [stopCamera]);
 
@@ -249,20 +258,23 @@ const AddEditPhotoModal: React.FC<{ photo: Photo | null; onSave: (data: Omit<Pho
         setCameraError(null);
         setUrl('');
         try {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error("La fonctionnalité caméra n'est pas supportée par ce navigateur.");
+            }
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
             streamRef.current = stream;
             if (videoRef.current) videoRef.current.srcObject = stream;
-            setTakingPhoto(true);
+            setCameraActive(true);
         } catch (err) {
             console.error("Erreur d'accès à la caméra:", err);
             setCameraError("Impossible d'accéder à la caméra. Veuillez vérifier les autorisations dans les paramètres de votre navigateur.");
-            setTakingPhoto(false);
+            setCameraActive(false);
         }
     };
 
     const handleCancelCamera = () => {
         stopCamera();
-        setTakingPhoto(false);
+        setCameraActive(false);
         setCameraError(null);
     };
 
@@ -273,14 +285,16 @@ const AddEditPhotoModal: React.FC<{ photo: Photo | null; onSave: (data: Omit<Pho
             canvasRef.current.width = video.videoWidth;
             canvasRef.current.height = video.videoHeight;
             context?.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-            setUrl(canvasRef.current.toDataURL('image/png'));
+            setUrl(canvasRef.current.toDataURL('image/jpeg', 0.9));
             stopCamera();
-            setTakingPhoto(false);
+            setCameraActive(false);
         }
     };
     
     const triggerFileUpload = () => {
-        handleCancelCamera();
+        if (isCameraActive) {
+            handleCancelCamera();
+        }
         fileInputRef.current?.click();
     };
 
@@ -312,49 +326,54 @@ const AddEditPhotoModal: React.FC<{ photo: Photo | null; onSave: (data: Omit<Pho
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Image</label>
-                        <div className="w-full aspect-video bg-gray-100 dark:bg-gray-700 rounded-md flex items-center justify-center p-1 border-2 border-dashed border-gray-300 dark:border-gray-600">
-                           {isTakingPhoto ? (
+                        <div className="w-full aspect-video bg-gray-100 dark:bg-gray-900 rounded-md flex items-center justify-center p-1 border-2 border-dashed border-gray-300 dark:border-gray-600 relative overflow-hidden">
+                           {isCameraActive && !cameraError && (
                                 <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover rounded-md"></video>
-                           ) : url ? (
+                           )}
+                           {!isCameraActive && url && (
                                 <img src={url} alt="Aperçu" className="max-w-full max-h-full object-contain rounded-md" />
-                           ) : (
+                           )}
+                           {cameraError && (
+                                <div className="text-center text-red-500 p-4">
+                                    <p>{cameraError}</p>
+                                </div>
+                           )}
+                           {!isCameraActive && !url && !cameraError && (
                                 <div className="text-center text-gray-500 dark:text-gray-400">
-                                    <div className="w-12 h-12 mx-auto"><CameraIcon /></div>
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                     <p className="mt-2 text-sm">L'aperçu de l'image apparaîtra ici</p>
                                 </div>
                            )}
                            <canvas ref={canvasRef} className="hidden"></canvas>
                         </div>
-                        {cameraError && <p className="text-sm text-red-500 mt-2 text-center">{cameraError}</p>}
                     </div>
                     
-                     <div className="flex items-center justify-center flex-wrap gap-4 mt-2">
-                        {!isTakingPhoto ? (
+                     <div className="flex items-center justify-center flex-wrap gap-4 pt-1">
+                        {!isCameraActive ? (
                             <>
-                                <button type="button" onClick={triggerFileUpload} className="flex items-center space-x-2 px-4 py-2 border border-gray-300 dark:border-gray-500 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                    <UploadIcon />
-                                    <span>Télécharger</span>
+                                <button type="button" onClick={triggerFileUpload} className="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 focus:outline-none focus:underline">
+                                    Télécharger un fichier
                                 </button>
                                 <input id="file-upload" type="file" accept="image/*" onChange={handleFileUpload} className="hidden" ref={fileInputRef} />
-                                <button type="button" onClick={handleStartCamera} className="flex items-center space-x-2 px-4 py-2 border border-gray-300 dark:border-gray-500 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                    <div className="w-5 h-5"><CameraIcon/></div>
-                                    <span>Prendre une photo</span>
+                                <span className="text-gray-400 dark:text-gray-500">ou</span>
+                                 <button type="button" onClick={handleStartCamera} className="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 focus:outline-none focus:underline">
+                                    Prendre une photo
                                 </button>
                             </>
                         ) : (
-                            <>
-                                <button type="button" onClick={handleCapture} className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                    <div className="w-5 h-5"><CameraIcon/></div>
+                            <div className="flex items-center justify-center space-x-4">
+                                <button type="button" onClick={handleCapture} className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800">
+                                    <div className="w-5 h-5 text-white"><CameraIcon/></div>
                                     <span>Capturer la photo</span>
                                 </button>
-                                <button type="button" onClick={handleCancelCamera} className="px-4 py-2 border border-gray-300 dark:border-gray-500 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                <button type="button" onClick={handleCancelCamera} className="px-4 py-2 border border-gray-300 dark:border-gray-500 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800">
                                     Annuler
                                 </button>
-                            </>
+                            </div>
                         )}
                     </div>
                     
-                    <div>
+                    <div className="pt-2">
                         <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Titre</label>
                         <input type="text" id="title" value={title} onChange={e => setTitle(e.target.value)} disabled={!url} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-700/50 disabled:cursor-not-allowed" required />
                     </div>
@@ -362,9 +381,9 @@ const AddEditPhotoModal: React.FC<{ photo: Photo | null; onSave: (data: Omit<Pho
                         <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
                         <textarea id="description" value={description} onChange={e => setDescription(e.target.value)} rows={3} disabled={!url} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-700/50 disabled:cursor-not-allowed" />
                     </div>
-                    <div className="pt-4 flex justify-end">
-                        <button type="button" onClick={onClose} className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md mr-2">Annuler</button>
-                        <button type="submit" disabled={!url} className="bg-indigo-600 text-white px-4 py-2 rounded-md disabled:bg-indigo-400 dark:disabled:bg-indigo-800 disabled:cursor-not-allowed">Enregistrer</button>
+                    <div className="pt-4 flex justify-end space-x-3">
+                        <button type="button" onClick={onClose} className="px-4 py-2 border border-gray-300 dark:border-gray-500 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800">Annuler</button>
+                        <button type="submit" disabled={!url || !title} className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800 disabled:bg-indigo-300 dark:disabled:bg-indigo-800 disabled:cursor-not-allowed">Enregistrer</button>
                     </div>
                 </form>
             </div>
@@ -383,7 +402,7 @@ const DeleteConfirmationModal: React.FC<{photo: Photo; onConfirm: () => void; on
                 </p>
                 </div>
             <div className="bg-gray-50 dark:bg-gray-700 px-6 py-4 flex justify-end space-x-3">
-                <button type="button" onClick={onClose} className="bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-md border border-gray-300 dark:border-gray-500">Annuler</button>
+                <button type="button" onClick={onClose} className="bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-md border border-gray-300 dark:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-500">Annuler</button>
                 <button type="button" onClick={onConfirm} className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">Supprimer</button>
             </div>
         </div>
@@ -409,20 +428,24 @@ const PhotoPreviewModal: React.FC<{ photos: Photo[]; startIndex: number; onClose
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-80 flex flex-col items-center justify-center z-[60] p-4" onClick={onClose}>
-            <button onClick={onClose} className="absolute top-4 right-4 text-white text-4xl hover:text-gray-300 transition-colors" aria-label="Fermer">&times;</button>
+            <button onClick={onClose} className="absolute top-4 right-4 text-white p-2 rounded-full bg-black/30 hover:bg-black/50 transition-colors" aria-label="Fermer"><CloseIcon/></button>
             
             <div className="relative w-full h-full flex items-center justify-center" onClick={e => e.stopPropagation()}>
                 {photos.length > 1 && (
                      <>
-                        <button onClick={onPrev} className="absolute left-4 text-white text-4xl bg-black/30 p-2 rounded-full hover:bg-black/50 transition-colors" aria-label="Précédent">&#10094;</button>
-                        <button onClick={onNext} className="absolute right-4 text-white text-4xl bg-black/30 p-2 rounded-full hover:bg-black/50 transition-colors" aria-label="Suivant">&#10095;</button>
+                        <button onClick={onPrev} className="absolute left-4 text-white bg-black/30 p-3 rounded-full hover:bg-black/50 transition-colors focus:outline-none focus:ring-2 focus:ring-white" aria-label="Précédent">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                        </button>
+                        <button onClick={onNext} className="absolute right-4 text-white bg-black/30 p-3 rounded-full hover:bg-black/50 transition-colors focus:outline-none focus:ring-2 focus:ring-white" aria-label="Suivant">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                        </button>
                      </>
                 )}
                 <div className="max-w-[85vw] max-h-[85vh] flex flex-col items-center animate-zoom-in">
                     <img src={photo.url} alt={photo.title} className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
-                     <div className="text-center mt-3 text-white bg-black/50 p-2 rounded-md">
+                     <div className="text-center mt-3 text-white bg-black/50 p-2 rounded-md max-w-full">
                         <h3 className="font-bold text-lg">{photo.title}</h3>
-                        {photo.description && <p className="text-sm text-gray-300">{photo.description}</p>}
+                        {photo.description && <p className="text-sm text-gray-300 break-words">{photo.description}</p>}
                     </div>
                 </div>
             </div>
