@@ -10,7 +10,6 @@ export interface Permission {
 export interface Role {
   id: string;
   name: string;
-  // Correction TS2739: Ajout des champs manquants
   description: string;
   permissionIds: string[];
 }
@@ -43,17 +42,26 @@ export interface Contribution {
   memberName: string;
   amount: number;
   date: string; // Stored as ISO string
-  type: 'Cotisation' | 'Don'| 'Événement';
-  status: 'Payé' | 'En attente' | 'Annulé';
+  type: 'Cotisation' | 'Don' | 'Événement';
+  status: 'Payé' | 'En attente';
 }
 
-export interface Message {
-    id: string;
-    senderId: number;
-    senderName: string;
-    timestamp: string;
-    content: string;
-    status: 'sent' | 'delivered' | 'read';
+export interface Attachment {
+  id: string;
+  name: string;
+  type: 'file' | 'image' | 'video';
+  url: string; // Server or data URL
+}
+
+// NOUVEAU TYPE CRUCIAL pour la communication (basé sur le log d'erreur)
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  senderName: string;
+  content: string;
+  timestamp: string; // ISO string
+  attachments?: Attachment[];
+  status: 'sent' | 'delivered' | 'read';
 }
 
 export type RSVPStatus = 'Attending' | 'Maybe' | 'Not Attending';
@@ -114,8 +122,12 @@ export interface SearchResults {
     documentation: DocArticle[];
 }
 
-export interface Attachment {
-    id: string;
-    fileName: string;
-    url: string;
+// NOUVEAU TYPE CRUCIAL pour les services API (basé sur le log d'erreur)
+export interface AllDataResponse {
+    members: Member[];
+    roles: Role[];
+    contributions: Contribution[];
+    contributionTypes: ContributionType[];
+    events: AppEvent[];
+    docArticles: DocArticle[];
 }
