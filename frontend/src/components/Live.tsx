@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Blob as GenAI_Blob, LiveSession } from '@google/genai';
 import MicOnIcon from './icons/MicOnIcon';
 import PhoneIcon from './icons/PhoneIcon';
+import ErrorIcon from './icons/ErrorIcon';
+import UserIcon from './icons/UserIcon';
 
 // --- Audio Helper Functions (from Gemini API guidelines) ---
 function encode(bytes: Uint8Array): string {
@@ -32,7 +34,6 @@ async function decodeAudioData(
     const dataInt16 = new Int16Array(data.buffer);
     const frameCount = dataInt16.length / numChannels;
     const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
-
     for (let channel = 0; channel < numChannels; channel++) {
         const channelData = buffer.getChannelData(channel);
         for (let i = 0; i < frameCount; i++) {
@@ -83,21 +84,26 @@ const Live: React.FC = () => {
     const lastMessageId = useRef(0);
 
     const cleanup = useCallback(() => {
+        // Disconnect and clean up microphone processing node
         scriptProcessorRef.current?.disconnect();
         scriptProcessorRef.current = null;
 
+        // Close audio contexts
         inputAudioContextRef.current?.close().catch(console.error);
         inputAudioContextRef.current = null;
 
         outputAudioContextRef.current?.close().catch(console.error);
         outputAudioContextRef.current = null;
 
+        // Stop media stream tracks (turns off microphone)
         mediaStreamRef.current?.getTracks().forEach(track => track.stop());
         mediaStreamRef.current = null;
         
+        // Stop any currently playing audio sources
         outputSourcesRef.current.forEach(source => source.stop());
         outputSourcesRef.current.clear();
         
+        // Clear the session promise
         sessionPromiseRef.current = null;
     }, []);
 
@@ -128,12 +134,15 @@ const Live: React.FC = () => {
                 callbacks: {
                     onopen: () => {
                         setSessionState('connected');
+                        // Initialize audio contexts (16kHz for input, 24kHz for output)
                         inputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
                         outputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
                         
                         const source = inputAudioContextRef.current.createMediaStreamSource(stream);
+                        // Create node for audio processing
                         scriptProcessorRef.current = inputAudioContextRef.current.createScriptProcessor(4096, 1, 1);
                         
+                        // Callback to send microphone data to the model
                         scriptProcessorRef.current.onaudioprocess = (audioProcessingEvent) => {
                             const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
                             const pcmBlob = createBlob(inputData);
@@ -142,6 +151,7 @@ const Live: React.FC = () => {
                             });
                         };
                         
+                        // Connect nodes
                         source.connect(scriptProcessorRef.current);
                         scriptProcessorRef.current.connect(inputAudioContextRef.current.destination);
                     },
@@ -152,9 +162,11 @@ const Live: React.FC = () => {
                             setCurrentTranscription(prev => ({ ...prev, user: currentInputTranscriptionRef.current }));
                         }
                         if (message.serverContent?.outputTranscription) {
-                             currentOutputTranscriptionRef.current += message.serverContent.outputTranscription.text;
-                             setCurrentTranscription(prev => ({ ...prev, model: currentOutputTranscriptionRef.current }));
+                            currentOutputTranscriptionRef.current += message.serverContent.outputTranscription.text;
+                            setCurrentTranscription(prev => ({ ...prev, model: currentOutputTranscriptionRef.current }));
                         }
+                        
+                        // Handle turn completion and update history
                         if (message.serverContent?.turnComplete) {
                             const userInput = currentInputTranscriptionRef.current.trim();
                             const modelOutput = currentOutputTranscriptionRef.current.trim();
@@ -164,21 +176,25 @@ const Live: React.FC = () => {
                                 ...(userInput ? [{ speaker: 'user' as const, text: userInput, id: ++lastMessageId.current }] : []),
                                 ...(modelOutput ? [{ speaker: 'model' as const, text: modelOutput, id: ++lastMessageId.current }] : []),
                             ]);
-
+                            
                             currentInputTranscriptionRef.current = '';
                             currentOutputTranscriptionRef.current = '';
                             setCurrentTranscription({ user: '', model: '' });
                         }
 
                         // Handle audio playback
-                        const base64Audio = message.serverContent?.modelTurn?.parts[0]?.inlineData.data;
+                        const base64Audio = message.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
                         if (base64Audio && outputAudioContextRef.current) {
+                            // Ensure audio starts sequentially
                             nextStartTimeRef.current = Math.max(nextStartTimeRef.current, outputAudioContextRef.current.currentTime);
+                            
                             const audioBuffer = await decodeAudioData(decode(base64Audio), outputAudioContextRef.current, 24000, 1);
                             const source = outputAudioContextRef.current.createBufferSource();
                             source.buffer = audioBuffer;
                             source.connect(outputAudioContextRef.current.destination);
+                            
                             source.addEventListener('ended', () => outputSourcesRef.current.delete(source));
+                            
                             source.start(nextStartTimeRef.current);
                             nextStartTimeRef.current += audioBuffer.duration;
                             outputSourcesRef.current.add(source);
@@ -202,7 +218,6 @@ const Live: React.FC = () => {
                     systemInstruction: "Tu es un assistant vocal amical et serviable pour une association nommée KelensiConnect. Réponds de manière concise et naturelle.",
                 },
             });
-
         } catch (error) {
             console.error('Failed to start session:', error);
             const message = error instanceof Error ? error.message : "Une erreur inconnue est survenue.";
@@ -224,12 +239,14 @@ const Live: React.FC = () => {
         cleanup();
         setSessionState('idle');
     }, [cleanup]);
-    
+
     useEffect(() => {
+        // Scroll to the end of the transcript history
         transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [transcriptionHistory, currentTranscription]);
 
     useEffect(() => {
+        // Cleanup on component unmount
         return () => {
             handleEndSession();
         };
@@ -245,9 +262,9 @@ const Live: React.FC = () => {
         switch (sessionState) {
             case 'idle':
                 return (
-                    <div className="text-center m-auto">
+                    <div className="text-center m-auto p-8">
                         <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center mx-auto text-indigo-600 dark:text-indigo-400">
-                           <MicOnIcon />
+                            <MicOnIcon className="w-8 h-8"/>
                         </div>
                         <h3 className="mt-4 text-xl font-semibold text-gray-800 dark:text-gray-200">Session Vocale Live</h3>
                         <p className="mt-1 text-gray-500 dark:text-gray-400">Démarrez une conversation en temps réel avec l'assistant IA.</p>
@@ -258,72 +275,96 @@ const Live: React.FC = () => {
                 );
             case 'connecting':
                 return (
-                    <div className="text-center m-auto">
+                    <div className="text-center m-auto p-8">
                         <svg className="animate-spin h-10 w-10 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        <p className="mt-4 text-gray-600 dark:text-gray-400">Connexion en cours...</p>
+                        <h3 className="mt-4 text-xl font-semibold text-gray-800 dark:text-gray-200">Connexion en cours...</h3>
+                        <p className="mt-1 text-gray-500 dark:text-gray-400">Veuillez autoriser l'accès au microphone.</p>
                     </div>
                 );
-             case 'error':
-                 return (
-                    <div className="text-center m-auto p-4">
-                        <h3 className="text-xl font-semibold text-red-600">Erreur de session</h3>
-                        <p className="mt-2 text-gray-500 dark:text-gray-400 bg-red-50 dark:bg-red-900/30 p-3 rounded-md">{errorMessage}</p>
+            case 'error':
+                return (
+                    <div className="text-center m-auto p-8">
+                        <div className="w-16 h-16 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center mx-auto text-red-600 dark:text-red-400">
+                            <ErrorIcon className="w-8 h-8"/>
+                        </div>
+                        <h3 className="mt-4 text-xl font-semibold text-gray-800 dark:text-gray-200">Erreur de Session</h3>
+                        <p className="mt-1 text-red-600 dark:text-red-400 font-medium">{errorMessage}</p>
                         <button onClick={handleStartSession} className="mt-6 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition-colors">
                             Réessayer
                         </button>
                     </div>
-                 );
+                );
             case 'connected':
                 return (
                     <div className="flex flex-col h-full">
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                             {transcriptionHistory.map(entry => (
-                                 entry.speaker === 'user' ? (
-                                    <div key={entry.id} className="flex justify-end items-start gap-3">
-                                      <div className="order-1 max-w-md lg:max-w-lg px-4 py-2 rounded-2xl rounded-br-none bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-                                        <p>{entry.text}</p>
-                                      </div>
+                        {/* Transcript History */}
+                        <div className="flex-grow overflow-y-auto p-4 space-y-4">
+                            {transcriptionHistory.map((entry) => (
+                                <div key={entry.id} className={`flex ${entry.speaker === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                    <div className={`max-w-xs md:max-w-md lg:max-w-lg p-3 rounded-lg shadow-md ${
+                                        entry.speaker === 'user' 
+                                        ? 'bg-indigo-600 text-white rounded-br-none' 
+                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-tl-none'
+                                    }`}>
+                                        <div className="flex items-center text-xs font-semibold mb-1">
+                                            {entry.speaker === 'model' && <BotIcon />}
+                                            <span className={`ml-1 ${entry.speaker === 'user' ? 'text-indigo-200 dark:text-indigo-400' : 'text-gray-600 dark:text-gray-400'}`}>
+                                                {entry.speaker === 'user' ? 'Vous' : 'Assistant IA'}
+                                            </span>
+                                        </div>
+                                        {entry.text}
                                     </div>
-                                ) : (
-                                    <div key={entry.id} className="flex justify-start items-start gap-3">
-                                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white">
-                                        <BotIcon />
-                                      </div>
-                                      <div className="order-1 max-w-md lg:max-w-lg px-4 py-2 rounded-2xl rounded-bl-none bg-indigo-600 text-white">
-                                        <p>{entry.text}</p>
-                                      </div>
-                                    </div>
-                                )
+                                </div>
                             ))}
+
+                            {/* Live User Transcription */}
                             {currentTranscription.user && (
                                 <div className="flex justify-end">
-                                    <div className="max-w-xl px-4 py-2 rounded-2xl bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-br-none italic">
-                                       {currentTranscription.user}
+                                    <div className="max-w-xs md:max-w-md lg:max-w-lg p-3 rounded-lg rounded-br-none shadow-md bg-indigo-500 text-white animate-pulse-fade-bg">
+                                        <div className="flex items-center text-xs font-semibold mb-1 text-indigo-200 dark:text-indigo-400">
+                                            <span>Vous êtes en train de parler...</span>
+                                        </div>
+                                        {currentTranscription.user}
                                     </div>
                                 </div>
                             )}
+
+                            {/* Live Model Transcription */}
                             {currentTranscription.model && (
-                                <div className="flex justify-start items-start gap-3">
-                                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-600/50 flex items-center justify-center text-white">
-                                        <BotIcon />
-                                    </div>
-                                    <div className="max-w-xl px-4 py-2 rounded-2xl bg-indigo-600/80 text-indigo-200 rounded-bl-none italic">
+                                <div className="flex justify-start">
+                                    <div className="max-w-xs md:max-w-md lg:max-w-lg p-3 rounded-lg rounded-tl-none shadow-md bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 animate-pulse-fade-bg">
+                                        <div className="flex items-center text-xs font-semibold mb-1 text-gray-600 dark:text-gray-400">
+                                            <BotIcon />
+                                            <span className="ml-1">Assistant IA est en train de répondre...</span>
+                                        </div>
                                         {currentTranscription.model}
                                     </div>
                                 </div>
                             )}
+
                             <div ref={transcriptEndRef} />
                         </div>
+                        
+                        {/* Control Panel */}
                         <div className="flex-shrink-0 p-4 border-t border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center space-y-4">
                             <div className="relative flex items-center justify-center w-20 h-20">
-                                <div className="absolute inset-0 bg-indigo-500 rounded-full animate-pulse"></div>
-                                <div className="relative w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center text-white"><MicOnIcon/></div>
+                                {/* Pulse indicator when mic is listening/active */}
+                                <div className="absolute inset-0 bg-indigo-500 rounded-full opacity-75 animate-ping"></div>
+                                <div className="relative w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center text-white">
+                                    <MicOnIcon className="w-8 h-8"/>
+                                </div>
                             </div>
-                            <button onClick={handleEndSession} className="p-3 bg-red-600 rounded-full hover:bg-red-500 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white dark:focus:ring-offset-gray-800" aria-label="Raccrocher">
-                                <div className="rotate-[135deg]"><PhoneIcon /></div>
+                            <button 
+                                onClick={handleEndSession} 
+                                className="p-3 bg-red-600 rounded-full hover:bg-red-500 transition-colors focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-800" 
+                                aria-label="Raccrocher"
+                            >
+                                <div className="rotate-[135deg] text-white">
+                                    <PhoneIcon className="w-6 h-6"/>
+                                </div>
                             </button>
                         </div>
                     </div>
@@ -332,7 +373,7 @@ const Live: React.FC = () => {
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md h-full flex flex-col">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl h-[500px] flex flex-col overflow-hidden">
             {renderContent()}
         </div>
     );
