@@ -1,9 +1,7 @@
-// src/components/Communication.tsx - **CORRECTED**
-
-import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Member, ChatMessage, Attachment, Role } from '../types';
-// Corrected relative path for icons from './icons/...' to '../icons/...'
-import SearchIcon from '../icons/SearchIcon';
+import React, { useState, useMemo, useEffect } from 'react';
+import { CommunicationChannel, Message, Member } from '../types';
+// CORRECTED: Import paths for icons now use '../icons/'
+import SearchIcon from '../icons/SearchIcon'; 
 import SendIcon from '../icons/SendIcon';
 import PaperclipIcon from '../icons/PaperclipIcon';
 import FileIcon from '../icons/FileIcon';
@@ -11,11 +9,11 @@ import DownloadIcon from '../icons/DownloadIcon';
 import UsersIcon from '../icons/UsersIcon';
 import VideoIcon from '../icons/VideoIcon';
 import PhoneIcon from '../icons/PhoneIcon';
-// This import is correct (in the same directory)
-import VideoCallModal from './VideoCallModal';
 import ArrowLeftIcon from '../icons/ArrowLeftIcon';
 import ReadReceiptIcon from '../icons/ReadReceiptIcon';
 import ChatBubbleIcon from '../icons/ChatBubbleIcon';
+
+import VideoCallModal from './VideoCallModal'; // Path to sibling component remains correct
 
 interface CommunicationProps {
     members: Member[];
