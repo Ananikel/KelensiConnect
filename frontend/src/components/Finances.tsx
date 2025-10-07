@@ -391,7 +391,7 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, onAddContri
                                         <td className="py-4 px-6">
                                             <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                                                 c.type === 'Cotisation' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300' :
-                                                c.type === 'Don's' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' :
+                                                c.type === 'Don' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : // <-- CORRECTED: Changed 'Don's' to 'Don'
                                                 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300'
                                             }`}>
                                                 {c.type}
