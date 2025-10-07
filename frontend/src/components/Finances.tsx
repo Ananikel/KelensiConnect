@@ -1,17 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Contribution, Member } from '../types';
-// CORRECTED: Import paths for icons now use './icons/' for icons in the same folder, 
-// OR '..' if the icons are in a sibling directory to 'components'. 
-// Based on the error log 'src/components/Finances.tsx(3,24): error TS2307: Cannot find module './icons/SearchIcon'', 
-// the correct path must be '../icons/' (sibling directory to 'components').
-
-import SearchIcon from '../icons/SearchIcon';
-import PlusIcon from '../icons/PlusIcon';
-import CloseIcon from '../icons/CloseIcon';
-import DownloadIcon from '../icons/DownloadIcon';
-import Pagination from './Pagination'; // Path to Pagination remains correct
+import SearchIcon from '../icons/SearchIcon'; // <-- CORRIGÉ
+import PlusIcon from '../icons/PlusIcon'; // <-- CORRIGÉ
+import CloseIcon from '../icons/CloseIcon'; // <-- CORRIGÉ
+import DownloadIcon from '../icons/DownloadIcon'; // <-- CORRIGÉ
+import Pagination from './Pagination';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-
 
 interface FinancesProps {
     members: Member[];
@@ -145,8 +139,8 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, onAddContri
         setIsLoading(true);
         try {
             await onAddContribution({
-                memberId: memberId as number,
-                amount: amount as number,
+                memberId: memberId as number, // Assurez-vous que le type est correct
+                amount: amount as number, // Assurez-vous que le type est correct
                 date,
                 type,
                 status,
@@ -199,7 +193,7 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, onAddContri
                     onChange={(e) => setSelectedMemberId(e.target.value ? Number(e.target.value) : null)}
                     className="mt-1 block w-full md:w-1/2 lg:w-1/3 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
                 >
-                    <option value="">Vue d'overview (tous les membres)</option>
+                    <option value="">Vue d'ensemble (tous les membres)</option>
                     {members.sort((a,b) => a.name.localeCompare(b.name)).map(member => (
                         <option key={member.id} value={member.id}>
                             {member.name}
@@ -260,8 +254,8 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, onAddContri
                     <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
                          <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
                             <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">Répartition par Type ({selectedYear})</h3>
-                            <select 
-                                id="year-select" 
+                            <select
+                                id="year-select"
                                 aria-label="Sélectionner une année"
                                 value={selectedYear}
                                 onChange={(e) => setSelectedYear(Number(e.target.value))}
@@ -318,95 +312,107 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, onAddContri
             
             {/* Contributions Table */}
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                <div className="flex flex-col md:flex-row items-center justify-between mb-6 space-y-4 md:space-y-0">
-                    <div className="relative w-full md:w-80">
-                        <input
-                            type="text"
-                            placeholder="Rechercher par nom..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            disabled={!!selectedMemberId}
-                            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 disabled:bg-gray-50 dark:disabled:bg-gray-700 disabled:opacity-75"
-                        />
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <SearchIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-                        </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2 md:space-x-4 w-full md:w-auto">
-                        <select 
-                            value={statusFilter} 
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                            disabled={!!selectedMemberId}
-                            className="border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 disabled:opacity-75"
-                        >
-                            <option value="Tous">Statut: Tous</option>
-                            <option value="Payé">Payé</option>
-                            <option value="En attente">En attente</option>
-                        </select>
-                        <select 
-                            value={typeFilter} 
-                            onChange={(e) => setTypeFilter(e.target.value)}
-                            disabled={!!selectedMemberId}
-                            className="border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 disabled:opacity-75"
-                        >
-                            <option value="Tous">Type: Tous</option>
-                            <option value="Cotisation">Cotisation</option>
-                            <option value="Don">Don</option>
-                            <option value="Événement">Événement</option>
-                        </select>
+                <div className="flex flex-col md:flex-row items-center justify-between mb-4 space-y-4 md:space-y-0">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Détail des Contributions ({selectedMemberId !== null ? memberData?.memberName : 'Tous'})</h2>
+                    <div className="flex space-x-2">
                         <button 
                             onClick={handleOpenModal} 
-                            className="bg-indigo-600 text-white px-4 py-2 rounded-md shadow-md hover:bg-indigo-700 transition-colors flex items-center space-x-2"
+                            className="bg-indigo-600 text-white px-4 py-2 rounded-md shadow-md hover:bg-indigo-700 transition-colors flex items-center"
                         >
-                            <PlusIcon className="w-5 h-5" />
-                            <span className="hidden sm:inline">Ajouter</span>
+                            <PlusIcon className="w-5 h-5 mr-2" /> Ajouter Contribution
                         </button>
                         <button 
                             onClick={handleExportContributions} 
-                            className="p-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md shadow-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                            aria-label="Exporter en CSV"
+                            className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md shadow-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors flex items-center"
                         >
-                            <DownloadIcon className="w-5 h-5" />
+                            <DownloadIcon className="w-5 h-5 mr-2" /> Exporter
                         </button>
                     </div>
                 </div>
+                
+                {/* Filters */}
+                <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-4">
+                    <div className="relative flex-grow">
+                         <input
+                            type="text"
+                            placeholder="Rechercher par membre..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                        />
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <SearchIcon className="w-5 h-5 text-gray-400" />
+                        </div>
+                    </div>
+                   
+                    <select
+                        value={typeFilter}
+                        onChange={(e) => setTypeFilter(e.target.value)}
+                        className="border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                    >
+                        <option>Tous</option>
+                        {Object.keys(COLORS).map(type => <option key={type}>{type}</option>)}
+                    </select>
+                     <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                    >
+                        <option>Tous</option>
+                        <option>Payé</option>
+                        <option>En attente</option>
+                    </select>
+                </div>
 
-                <div className="overflow-x-auto relative shadow-md sm:rounded-lg">
-                    <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                        <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead className="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <th scope="col" className="py-3 px-6">ID</th>
-                                <th scope="col" className="py-3 px-6">Membre</th>
-                                <th scope="col" className="py-3 px-6">Montant (CFA)</th>
-                                <th scope="col" className="py-3 px-6">Date</th>
-                                <th scope="col" className="py-3 px-6">Type</th>
-                                <th scope="col" className="py-3 px-6">Statut</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Membre
+                                </th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Montant (CFA)
+                                </th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Type
+                                </th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Date
+                                </th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Statut
+                                </th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             {paginatedContributions.length > 0 ? (
-                                paginatedContributions.map(c => (
-                                    <tr key={c.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                                        <td className="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">{c.id}</td>
-                                        <td className="py-4 px-6">{c.memberName}</td>
-                                        <td className="py-4 px-6 font-semibold">
+                                paginatedContributions.map((c) => (
+                                    <tr key={c.id}>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                                            {c.memberName}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                                             {c.amount.toLocaleString('fr-FR')}
                                         </td>
-                                        <td className="py-4 px-6">{new Date(c.date).toLocaleDateString('fr-FR')}</td>
-                                        <td className="py-4 px-6">
-                                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                                c.type === 'Cotisation' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300' :
-                                                c.type === 'Don' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : // <-- CORRECTED: Changed 'Don's' to 'Don'
-                                                'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300'
-                                            }`}>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full`}
+                                                style={{ 
+                                                    backgroundColor: `${COLORS[c.type as keyof typeof COLORS]}1A`, // 10% opacity
+                                                    color: COLORS[c.type as keyof typeof COLORS] 
+                                                }}
+                                            >
                                                 {c.type}
                                             </span>
                                         </td>
-                                        <td className="py-4 px-6">
-                                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                                c.status === 'Payé' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' :
-                                                'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                            {new Date(c.date).toLocaleDateString('fr-FR')}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                                c.status === 'Payé' 
+                                                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' 
+                                                    : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
                                             }`}>
                                                 {c.status}
                                             </span>
@@ -415,8 +421,8 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, onAddContri
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={6} className="py-8 text-center text-gray-500 dark:text-gray-400">
-                                        Aucune contribution trouvée correspondant aux filtres.
+                                    <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                        Aucune contribution trouvée.
                                     </td>
                                 </tr>
                             )}
@@ -424,114 +430,96 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, onAddContri
                     </table>
                 </div>
 
-                <div className="mt-4">
-                    <Pagination 
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={setCurrentPage}
-                    />
-                </div>
+                {totalPages > 1 && (
+                    <div className="mt-4">
+                         <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={setCurrentPage}
+                         />
+                    </div>
+                )}
             </div>
-
+            
             {/* Add Contribution Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg p-6 relative">
-                        <div className="flex justify-between items-center pb-3 border-b border-gray-200 dark:border-gray-700">
-                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                                Ajouter une Nouvelle Contribution
-                            </h3>
-                            <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg p-6">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Ajouter une Nouvelle Contribution</h3>
+                            <button onClick={handleCloseModal} disabled={isLoading} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                                 <CloseIcon className="w-6 h-6" />
                             </button>
                         </div>
-                        <form onSubmit={handleSubmit} className="mt-4">
-                            <div className="space-y-4">
+                        <form onSubmit={handleSubmit}>
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div>
-                                    <label htmlFor="memberId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Membre <span className="text-red-500">*</span>
-                                    </label>
+                                    <label htmlFor="memberId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Membre</label>
                                     <select
                                         id="memberId"
                                         value={memberId}
-                                        onChange={e => setMemberId(Number(e.target.value) || '')}
+                                        onChange={e => setMemberId(Number(e.target.value))}
                                         className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
                                         required
                                     >
                                         <option value="">Sélectionner un membre</option>
                                         {members.sort((a,b) => a.name.localeCompare(b.name)).map(member => (
-                                            <option key={member.id} value={member.id}>
-                                                {member.name}
-                                            </option>
+                                            <option key={member.id} value={member.id}>{member.name}</option>
                                         ))}
                                     </select>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Montant (CFA) <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                            type="number"
-                                            id="amount"
-                                            value={amount}
-                                            onChange={e => setAmount(Number(e.target.value) || '')}
-                                            min="1"
-                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Date <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                            type="date"
-                                            id="date"
-                                            value={date}
-                                            onChange={e => setDate(e.target.value)}
-                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
-                                            required
-                                        />
-                                    </div>
+                                <div>
+                                    <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Montant (CFA)</label>
+                                    <input
+                                        type="number"
+                                        id="amount"
+                                        value={amount}
+                                        onChange={e => setAmount(Number(e.target.value))}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                                        min="1"
+                                        required
+                                    />
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Type <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
-                                            id="type"
-                                            value={type}
-                                            onChange={e => setType(e.target.value as 'Cotisation' | 'Don' | 'Événement')}
-                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
-                                            required
-                                        >
-                                            <option>Cotisation</option>
-                                            <option>Don</option>
-                                            <option>Événement</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Statut <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
-                                            id="status"
-                                            value={status}
-                                            onChange={e => setStatus(e.target.value as 'Payé' | 'En attente')}
-                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
-                                            required
-                                        >
-                                            <option>Payé</option>
-                                            <option>En attente</option>
-                                        </select>
-                                    </div>
+                                <div>
+                                    <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
+                                    <input
+                                        type="date"
+                                        id="date"
+                                        value={date}
+                                        onChange={e => setDate(e.target.value)}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Type de Contribution</label>
+                                    <select
+                                        id="type"
+                                        value={type}
+                                        onChange={e => setType(e.target.value as any)}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                                        required
+                                    >
+                                        {Object.keys(COLORS).map(type => <option key={type}>{type}</option>)}
+                                    </select>
+                                </div>
+                                <div className="sm:col-span-2">
+                                    <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Statut</label>
+                                    <select
+                                        id="status"
+                                        value={status}
+                                        onChange={e => setStatus(e.target.value as any)}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                                        required
+                                    >
+                                        <option>Payé</option>
+                                        <option>En attente</option>
+                                    </select>
                                 </div>
                             </div>
                             <div className="pt-4 flex justify-end">
-                                <button type="button" onClick={handleCloseModal} disabled={isLoading} className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md mr-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50">Annuler</button>
-                                <button type="submit" disabled={isLoading} className="bg-indigo-600 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50">
+                                <button type="button" onClick={handleCloseModal} disabled={isLoading} className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md mr-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 hover:bg-gray-300 dark:hover:bg-gray-500">Annuler</button>
+                                <button type="submit" disabled={isLoading} className="bg-indigo-600 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 hover:bg-indigo-700">
                                     {isLoading ? 'Ajout...' : 'Ajouter'}
                                 </button>
                             </div>
