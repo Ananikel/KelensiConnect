@@ -1,11 +1,17 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Contribution, Member } from '../types';
-import SearchIcon from './icons/SearchIcon';
-import PlusIcon from './icons/PlusIcon';
-import CloseIcon from './icons/CloseIcon';
-import DownloadIcon from './icons/DownloadIcon';
-import Pagination from './Pagination';
+// CORRECTED: Import paths for icons now use './icons/' for icons in the same folder, 
+// OR '..' if the icons are in a sibling directory to 'components'. 
+// Based on the error log 'src/components/Finances.tsx(3,24): error TS2307: Cannot find module './icons/SearchIcon'', 
+// the correct path must be '../icons/' (sibling directory to 'components').
+
+import SearchIcon from '../icons/SearchIcon';
+import PlusIcon from '../icons/PlusIcon';
+import CloseIcon from '../icons/CloseIcon';
+import DownloadIcon from '../icons/DownloadIcon';
+import Pagination from './Pagination'; // Path to Pagination remains correct
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+
 
 interface FinancesProps {
     members: Member[];
