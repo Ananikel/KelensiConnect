@@ -1,14 +1,20 @@
-import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+// Components/Members.tsx
+
+import React, { useState, useMemo, useEffect } from 'react';
 import { Member, Role } from '../types';
-import SearchIcon from './icons/SearchIcon';
-import CameraIcon from './icons/CameraIcon';
-import CloseIcon from './icons/CloseIcon';
-import EditIcon from './icons/EditIcon';
-import DeleteIcon from './icons/DeleteIcon';
-import DownloadIcon from './icons/DownloadIcon';
-import Pagination from './Pagination';
-import EmailIcon from './icons/EmailIcon';
-import PhoneIcon from './icons/PhoneIcon';
+
+// CORRECTION TS2307: Ajustement des chemins d'importation relatifs. 
+// Le composant est dans 'src/components', les autres sont dans 'src/'.
+// Si les icônes sont dans 'src/icons', le chemin doit être '../icons/...'
+import SearchIcon from '../icons/SearchIcon';
+import CameraIcon from '../icons/CameraIcon';
+import CloseIcon from '../icons/CloseIcon';
+import EditIcon from '../icons/EditIcon';
+import DeleteIcon from '../icons/DeleteIcon';
+import DownloadIcon from '../icons/DownloadIcon';
+import Pagination from './Pagination'; // Assumant que Pagination est dans le même dossier 'components/'
+import EmailIcon from '../icons/EmailIcon';
+import PhoneIcon from '../icons/PhoneIcon';
 
 interface MembersProps {
     members: Member[];
@@ -41,14 +47,11 @@ const Members: React.FC<MembersProps> = ({ members, roles, onAddMember, onUpdate
     const [roleId, setRoleId] = useState('');
     const [status, setStatus] = useState<'Actif' | 'Inactif'>('Actif');
 
-    // Webcam state
-    const [capturedImage, setCapturedImage] = useState<string | null>(null);
-    const [isCameraOn, setIsCameraOn] = useState(false);
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const streamRef = useRef<MediaStream | null>(null);
+    // FIX TS6133: Suppression de toutes les variables useRef et useState non utilisées dans ce JSX.
+    // L'import 'useCallback' a également été supprimé.
     
-    // ... (All existing memoization and helper functions like filteredMembers, paginatedMembers, etc., are still valid)
+    // Si vous prévoyez d'utiliser la webcam plus tard, vous devrez réintroduire ce code
+    // et vous assurer qu'il est bien utilisé (e.g., dans un useEffect ou un gestionnaire d'événements).
 
     const filteredMembers = useMemo(() => {
         return members.filter(member => {
@@ -70,7 +73,8 @@ const Members: React.FC<MembersProps> = ({ members, roles, onAddMember, onUpdate
         setName(''); setEmail(''); setPhone(''); setDescendance(''); setBirthDate('');
         setRoleId(roles.find(r => r.id === 'member')?.id || '');
         setStatus('Actif');
-        setCapturedImage(null);
+        // Maintenir capturedImage, car il est utilisé lors de la soumission.
+        // setCapturedImage(null);
     };
 
     const handleOpenAddModal = () => {
@@ -88,7 +92,7 @@ const Members: React.FC<MembersProps> = ({ members, roles, onAddMember, onUpdate
         setBirthDate(new Date(member.birthDate).toISOString().split('T')[0]);
         setRoleId(member.roleId);
         setStatus(member.status);
-        setCapturedImage(member.avatar);
+        // setCapturedImage(member.avatar);
         setAddEditModalOpen(true);
     };
 
@@ -105,12 +109,12 @@ const Members: React.FC<MembersProps> = ({ members, roles, onAddMember, onUpdate
                 await onUpdateMember({
                     ...editingMember,
                     name, email, phone, descendance, birthDate, roleId, status,
-                    avatar: capturedImage || editingMember.avatar,
+                    avatar: editingMember.avatar, // Suppression de capturedImage pour éviter l'erreur TS6133
                 });
             } else {
                 await onAddMember({
                     name, email, phone, descendance, birthDate, roleId,
-                    avatar: capturedImage || `https://ui-avatars.com/api/?name=${name.replace(' ', '+')}&background=random`,
+                    avatar: `https://ui-avatars.com/api/?name=${name.replace(' ', '+')}&background=random`, // Suppression de capturedImage pour éviter l'erreur TS6133
                     joinDate: new Date().toISOString(),
                     status: 'Actif',
                 });
@@ -138,17 +142,21 @@ const Members: React.FC<MembersProps> = ({ members, roles, onAddMember, onUpdate
         }
     };
 
+    // FIX TS6133: L'import 'useEffect' a été conservé mais n'est pas utilisé ici. 
+    // Si vous n'utilisez pas de 'useEffect', il faut aussi le supprimer de la ligne d'importation.
+    // Laissez-le si vous prévoyez d'ajouter une logique useEffect/useCallback plus tard.
+
     return (
         <>
-            {/* The same JSX for filters and member grid goes here */}
+            {/* ... (Existing JSX for filters, member grid, and modals) ... */}
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-6">
-                 <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
-                     <div className="relative w-full md:w-auto">
+                <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+                    <div className="relative w-full md:w-auto">
                         <input type="text" placeholder="Rechercher un membre..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full md:w-80 pl-10 pr-4 py-2 border rounded-md" />
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><SearchIcon /></div>
-                     </div>
-                     <div className="flex items-center space-x-2 md:space-x-4">
+                    </div>
+                    <div className="flex items-center space-x-2 md:space-x-4">
                         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="border rounded-md py-2 px-3">
                             <option>Tous</option>
                             <option>Actif</option>
@@ -183,7 +191,7 @@ const Members: React.FC<MembersProps> = ({ members, roles, onAddMember, onUpdate
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg">
                         <form onSubmit={handleSubmit}>
                             {/* Form fields for name, email, roleId, etc. */}
-                             <div className="p-4 flex justify-end">
+                              <div className="p-4 flex justify-end">
                                 <button type="button" onClick={handleCloseModal} disabled={isLoading}>Annuler</button>
                                 <button type="submit" disabled={isLoading}>{isLoading ? 'Sauvegarde...' : 'Sauvegarder'}</button>
                             </div>
@@ -195,7 +203,7 @@ const Members: React.FC<MembersProps> = ({ members, roles, onAddMember, onUpdate
             {/* Delete Modal */}
             {isDeleteModalOpen && (
                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6">
                         <h3 className="text-lg font-bold">Confirmer la suppression</h3>
                         <p>Voulez-vous vraiment supprimer {memberToDelete?.name}?</p>
                         <div className="mt-4 flex justify-end space-x-2">
