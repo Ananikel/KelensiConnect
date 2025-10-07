@@ -139,8 +139,8 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, onAddContri
         setIsLoading(true);
         try {
             await onAddContribution({
-                memberId,
-                amount,
+                memberId: memberId as number,
+                amount: amount as number,
                 date,
                 type,
                 status,
@@ -193,7 +193,7 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, onAddContri
                     onChange={(e) => setSelectedMemberId(e.target.value ? Number(e.target.value) : null)}
                     className="mt-1 block w-full md:w-1/2 lg:w-1/3 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
                 >
-                    <option value="">Vue d'ensemble (tous les membres)</option>
+                    <option value="">Vue d'overview (tous les membres)</option>
                     {members.sort((a,b) => a.name.localeCompare(b.name)).map(member => (
                         <option key={member.id} value={member.id}>
                             {member.name}
@@ -265,8 +265,8 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, onAddContri
                                     <option key={year} value={year}>{year}</option>
                                 ))}
                             </select>
-                         </div>
-                         {yearlyData.pieData.length > 0 ? (
+                        </div>
+                        {yearlyData.pieData.length > 0 ? (
                             <ResponsiveContainer width="100%" height={300}>
                                 <PieChart>
                                     <Pie
@@ -292,13 +292,13 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, onAddContri
                                     <Legend wrapperStyle={{ color: legendColor }} />
                                 </PieChart>
                             </ResponsiveContainer>
-                         ) : (
-                             <div className="flex items-center justify-center h-[300px] text-gray-500 dark:text-gray-400">
+                        ) : (
+                            <div className="flex items-center justify-center h-[300px] text-gray-500 dark:text-gray-400">
                                 Aucune donnée pour l'année {selectedYear}.
-                             </div>
-                         )}
+                            </div>
+                        )}
                     </div>
-                     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col">
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col">
                         <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Statistiques Annuelles</h3>
                         <div className="text-center bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg flex-grow flex flex-col justify-center">
                             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total des Contributions pour {selectedYear}</p>
@@ -313,123 +313,214 @@ const Finances: React.FC<FinancesProps> = ({ members, contributions, onAddContri
             {/* Contributions Table */}
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
                 <div className="flex flex-col md:flex-row items-center justify-between mb-6 space-y-4 md:space-y-0">
-                    <div className="relative w-full md:w-auto">
-                        <input 
-                            type="text" 
-                            placeholder="Rechercher par nom..." 
+                    <div className="relative w-full md:w-80">
+                        <input
+                            type="text"
+                            placeholder="Rechercher par nom..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             disabled={!!selectedMemberId}
-                            className="w-full md:w-80 pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-700/50"
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 disabled:bg-gray-50 dark:disabled:bg-gray-700 disabled:opacity-75"
                         />
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <SearchIcon />
+                            <SearchIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                         </div>
                     </div>
-                    <div className="flex items-center space-x-2 md:space-x-4">
-                        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200">
-                            <option value="Tous">Tous Types</option>
+                    
+                    <div className="flex items-center space-x-2 md:space-x-4 w-full md:w-auto">
+                        <select 
+                            value={statusFilter} 
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            disabled={!!selectedMemberId}
+                            className="border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 disabled:opacity-75"
+                        >
+                            <option value="Tous">Statut: Tous</option>
+                            <option value="Payé">Payé</option>
+                            <option value="En attente">En attente</option>
+                        </select>
+                        <select 
+                            value={typeFilter} 
+                            onChange={(e) => setTypeFilter(e.target.value)}
+                            disabled={!!selectedMemberId}
+                            className="border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 disabled:opacity-75"
+                        >
+                            <option value="Tous">Type: Tous</option>
                             <option value="Cotisation">Cotisation</option>
                             <option value="Don">Don</option>
                             <option value="Événement">Événement</option>
                         </select>
-                         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200">
-                            <option value="Tous">Tous Statuts</option>
-                            <option value="Payé">Payé</option>
-                            <option value="En attente">En attente</option>
-                        </select>
-                        <button onClick={handleExportContributions} className="flex items-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                            <DownloadIcon />
-                            <span className="ml-2 hidden md:inline">Exporter</span>
+                        <button 
+                            onClick={handleOpenModal} 
+                            className="bg-indigo-600 text-white px-4 py-2 rounded-md shadow-md hover:bg-indigo-700 transition-colors flex items-center space-x-2"
+                        >
+                            <PlusIcon className="w-5 h-5" />
+                            <span className="hidden sm:inline">Ajouter</span>
                         </button>
-                         <button onClick={handleOpenModal} className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            <PlusIcon />
-                            <span className="ml-2 hidden md:inline">Ajouter</span>
+                        <button 
+                            onClick={handleExportContributions} 
+                            className="p-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md shadow-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                            aria-label="Exporter en CSV"
+                        >
+                            <DownloadIcon className="w-5 h-5" />
                         </button>
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead className="bg-gray-50 dark:bg-gray-700">
+                <div className="overflow-x-auto relative shadow-md sm:rounded-lg">
+                    <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                             <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Membre</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Montant</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Statut</th>
+                                <th scope="col" className="py-3 px-6">ID</th>
+                                <th scope="col" className="py-3 px-6">Membre</th>
+                                <th scope="col" className="py-3 px-6">Montant (CFA)</th>
+                                <th scope="col" className="py-3 px-6">Date</th>
+                                <th scope="col" className="py-3 px-6">Type</th>
+                                <th scope="col" className="py-3 px-6">Statut</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                            {paginatedContributions.map((c: Contribution) => (
-                                <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-200">{c.memberName}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-200">{c.amount.toLocaleString('fr-FR')} CFA</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{new Date(c.date).toLocaleDateString('fr-FR')}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{c.type}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                            c.status === 'Payé' ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300'
-                                        }`}>
-                                            {c.status}
-                                        </span>
+                        <tbody>
+                            {paginatedContributions.length > 0 ? (
+                                paginatedContributions.map(c => (
+                                    <tr key={c.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                        <td className="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">{c.id}</td>
+                                        <td className="py-4 px-6">{c.memberName}</td>
+                                        <td className="py-4 px-6 font-semibold">
+                                            {c.amount.toLocaleString('fr-FR')}
+                                        </td>
+                                        <td className="py-4 px-6">{new Date(c.date).toLocaleDateString('fr-FR')}</td>
+                                        <td className="py-4 px-6">
+                                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                                c.type === 'Cotisation' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300' :
+                                                c.type === 'Don's' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' :
+                                                'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300'
+                                            }`}>
+                                                {c.type}
+                                            </span>
+                                        </td>
+                                        <td className="py-4 px-6">
+                                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                                c.status === 'Payé' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' :
+                                                'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+                                            }`}>
+                                                {c.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={6} className="py-8 text-center text-gray-500 dark:text-gray-400">
+                                        Aucune contribution trouvée correspondant aux filtres.
                                     </td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>
-                 {filteredContributions.length === 0 && (
-                    <div className="text-center py-10 text-gray-500 dark:text-gray-400">
-                        Aucune contribution trouvée pour les filtres actuels.
-                    </div>
-                )}
-                 <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={setCurrentPage}
-                />
+
+                <div className="mt-4">
+                    <Pagination 
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={setCurrentPage}
+                    />
+                </div>
             </div>
-            
+
             {/* Add Contribution Modal */}
             {isModalOpen && (
-                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md">
-                        <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200">Ajouter une Contribution</h3>
-                            <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" aria-label="Fermer"><CloseIcon /></button>
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg p-6 relative">
+                        <div className="flex justify-between items-center pb-3 border-b border-gray-200 dark:border-gray-700">
+                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                                Ajouter une Nouvelle Contribution
+                            </h3>
+                            <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                <CloseIcon className="w-6 h-6" />
+                            </button>
                         </div>
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            <div>
-                                <label htmlFor="memberId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Membre</label>
-                                <select id="memberId" value={memberId} onChange={e => setMemberId(Number(e.target.value))} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required>
-                                    <option value="" disabled>Sélectionner un membre</option>
-                                    {members.sort((a,b) => a.name.localeCompare(b.name)).map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-                                </select>
-                            </div>
-                             <div>
-                                <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Montant (CFA)</label>
-                                <input type="number" id="amount" value={amount} onChange={e => setAmount(Number(e.target.value))} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required />
-                            </div>
-                            <div>
-                                <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
-                                <input type="date" id="date" value={date} onChange={e => setDate(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
+                        <form onSubmit={handleSubmit} className="mt-4">
+                            <div className="space-y-4">
                                 <div>
-                                    <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Type</label>
-                                    <select id="type" value={type} onChange={e => setType(e.target.value as any)} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required>
-                                        <option>Cotisation</option>
-                                        <option>Don</option>
-                                        <option>Événement</option>
+                                    <label htmlFor="memberId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Membre <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        id="memberId"
+                                        value={memberId}
+                                        onChange={e => setMemberId(Number(e.target.value) || '')}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                                        required
+                                    >
+                                        <option value="">Sélectionner un membre</option>
+                                        {members.sort((a,b) => a.name.localeCompare(b.name)).map(member => (
+                                            <option key={member.id} value={member.id}>
+                                                {member.name}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
-                                <div>
-                                    <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Statut</label>
-                                    <select id="status" value={status} onChange={e => setStatus(e.target.value as any)} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" required>
-                                        <option>Payé</option>
-                                        <option>En attente</option>
-                                    </select>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Montant (CFA) <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="number"
+                                            id="amount"
+                                            value={amount}
+                                            onChange={e => setAmount(Number(e.target.value) || '')}
+                                            min="1"
+                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Date <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="date"
+                                            id="date"
+                                            value={date}
+                                            onChange={e => setDate(e.target.value)}
+                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Type <span className="text-red-500">*</span>
+                                        </label>
+                                        <select
+                                            id="type"
+                                            value={type}
+                                            onChange={e => setType(e.target.value as 'Cotisation' | 'Don' | 'Événement')}
+                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                                            required
+                                        >
+                                            <option>Cotisation</option>
+                                            <option>Don</option>
+                                            <option>Événement</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Statut <span className="text-red-500">*</span>
+                                        </label>
+                                        <select
+                                            id="status"
+                                            value={status}
+                                            onChange={e => setStatus(e.target.value as 'Payé' | 'En attente')}
+                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                                            required
+                                        >
+                                            <option>Payé</option>
+                                            <option>En attente</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                             <div className="pt-4 flex justify-end">
