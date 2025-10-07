@@ -1,20 +1,20 @@
 FROM node:20-alpine
 
 # Crée et définit le répertoire de travail
-WORKDIR /app/backend
+# Le chemin dans le conteneur doit correspondre au contexte du build dans le docker-compose
+WORKDIR /app
 
 # Copie des fichiers de dépendances et installation
-COPY backend/package*.json ./
+COPY package*.json ./
 
-RUN npm install
+RUN npm install --production
 
 # Copie du code source du backend
-COPY backend/ .
+COPY . .
 
-# Le port par défaut du backend (ajustez si nécessaire, ex: 3000 ou 8000)
-EXPOSE 8000
+# Le port d'écoute interne du backend est 5000
+EXPOSE 5000
 
 # Commande de démarrage du backend
+# NOTE : Si vous utilisez TypeScript directement sans build, remplacez par la commande appropriée (ex: 'npm run start:dev')
 CMD ["npm", "start"] 
-# Si votre script de démarrage est 'npm run dev', modifiez la ligne ci-dessus
-# Si vous utilisez Typescript, la commande serait plus complexe (ex: "node dist/server.js")
