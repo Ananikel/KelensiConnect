@@ -120,7 +120,6 @@ export interface SearchResults {
     documentation: DocArticle[];
 }
 
-// FIX: Add interface for the response of the /api/all-data endpoint.
 export interface AllDataResponse {
     members: Member[];
     contributions: Contribution[];

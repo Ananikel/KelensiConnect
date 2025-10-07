@@ -8,7 +8,6 @@ import './index.css';
 if (typeof (window as any).process === 'undefined') {
   (window as any).process = { 
     env: { 
-      // FIX: Cast `import.meta` to `any` to bypass TypeScript error for Vite env variables.
       API_KEY: (import.meta as any).env.VITE_API_KEY 
     } 
   };

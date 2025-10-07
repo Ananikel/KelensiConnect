@@ -11,7 +11,6 @@ pool.on('connect', () => {
 
 pool.on('error', (err) => {
     console.error('Erreur de connexion à la base de données', err);
-    // FIX: Cast process to any to fix TypeScript error for `process.exit`.
     (process as any).exit(-1);
 });
 
