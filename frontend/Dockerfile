@@ -10,15 +10,16 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-# Copy the rest of the application source code
+# Copy the rest of the application source code (including tsconfig.node.json now!)
 COPY . .
 
-# The build argument VITE_API_KEY is passed during the docker-compose build
+# Pass the API_KEY from the root .env file as a build argument
 ARG VITE_API_KEY
 
 # Build the React application (Vite default output is 'dist')
-# We explicitly pass the build argument as an environment variable to the build process
-RUN npm run build
+# We pass the VITE_API_KEY environment variable to the build process
+# NOTE: The command is executed by the shell, and Vite picks up VITE_* variables
+RUN VITE_API_KEY=${VITE_API_KEY} npm run build
 
 #----------------------------------------------------
 # Stage 2: Serve the application with Nginx
@@ -26,14 +27,10 @@ RUN npm run build
 FROM nginx:stable-alpine AS production
 
 # Copy the custom Nginx configuration file
-# This file handles routing and API proxy (see next section)
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy the built React application's static files from the builder stage
-# Assuming the build output is in 'dist'
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Expose the port Nginx is configured to listen on (port 80)
 EXPOSE 80
-
-# The default command for the Nginx image is sufficient to start the web server.
