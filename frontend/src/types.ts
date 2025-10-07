@@ -10,6 +10,7 @@ export interface Permission {
 export interface Role {
   id: string;
   name: string;
+  // Correction TS2739: Ajout des champs manquants
   description: string;
   permissionIds: string[];
 }
@@ -42,24 +43,17 @@ export interface Contribution {
   memberName: string;
   amount: number;
   date: string; // Stored as ISO string
-  type: 'Cotisation' | 'Don' | 'Événement';
-  status: 'Payé' | 'En attente';
+  type: 'Cotisation' | 'Don'| 'Événement';
+  status: 'Payé' | 'En attente' | 'Annulé';
 }
 
-export interface Attachment {
-  name: string;
-  type: string; // e.g., 'image/png', 'application/pdf'
-  url: string; // Can be a data URL or a server URL
-}
-
-export interface ChatMessage {
-  id: number;
-  senderId: number | 'admin';
-  receiverId: number | 'admin' | 0; // 0 represents the group chat
-  text: string;
-  timestamp: string; // Stored as ISO string
-  attachment?: Attachment;
-  status?: 'sent' | 'delivered' | 'read';
+export interface Message {
+    id: string;
+    senderId: number;
+    senderName: string;
+    timestamp: string;
+    content: string;
+    status: 'sent' | 'delivered' | 'read';
 }
 
 export type RSVPStatus = 'Attending' | 'Maybe' | 'Not Attending';
@@ -120,14 +114,8 @@ export interface SearchResults {
     documentation: DocArticle[];
 }
 
-export interface AllDataResponse {
-    members: Member[];
-    contributions: Contribution[];
-    messages: ChatMessage[];
-    events: AppEvent[];
-    photos: Photo[];
-    roles: Role[];
-    permissions: Permission[];
-    contributionTypes: ContributionType[];
-    docArticles: DocArticle[];
+export interface Attachment {
+    id: string;
+    fileName: string;
+    url: string;
 }
